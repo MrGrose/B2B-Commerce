@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import logo, site_footer %}
+{% block body %}
+{% set path = request.url.path %}
+<div class="app" hx-boost="true" hx-target="main.content" hx-select="main.content" hx-swap="innerHTML show:top">
+  <header class="topbar">
+    {% if request.state.layout_company_status == 'pending' %}
+    <a href="/pending" class="logo-link">{{ logo() }}</a>
+    {% elif request.state.layout_company_status == 'rejected' %}
+    <a href="/rejected" class="logo-link">{{ logo() }}</a>
+    {% else %}
+    <a href="/catalog" class="logo-link">{{ logo() }}</a>
+    {% endif %}
+    <div class="topbar-right">
+      {% if request.state.layout_user_login %}
+      <form method="post" action="/logout" class="topbar-logout-form" hx-boost="false">
+        {{ csrf_input() }}
+        <button type="submit" class="btn-icon topbar-logout" title="Выйти" aria-label="Выйти">
+          <i data-lucide="log-out"></i>
+        </button>
+      </form>
+      <a href="/profile" class="user-menu" title="{{ request.state.layout_user_login }}">
+        <span class="avatar">{{ request.state.layout_user_initials }}</span>
+        <span class="user-menu-text">
+          <span class="user-menu-name">{{ request.state.layout_user_name or request.state.layout_user_login }}</span>
+          <span class="user-menu-login">{{ request.state.layout_user_login }}</span>
+        </span>
+      </a>
+      {% endif %}
+    </div>
+  </header>
+  <div class="app-body">
+    <aside class="sidebar">
+      <nav>
+        {% if request.state.layout_company_status == 'active' %}
+        <a href="/catalog" class="{% if path.startswith('/catalog') %}active{% endif %}"><i data-lucide="package"></i> Каталог</a>
+        <a href="/cart" class="{% if path.startswith('/cart') %}active{% endif %}"><i data-lucide="shopping-cart"></i> Корзина<span class="nav-count" id="layout-cart-count"{% if not request.state.layout_cart_items_count %} hidden{% endif %}>{{ request.state.layout_cart_items_count or '' }}</span></a>
+        <a href="/invoices" class="{% if path.startswith('/invoices') %}active{% endif %}"><i data-lucide="file-text"></i> Счета</a>
+        {% elif request.state.layout_company_status == 'pending' %}
+        <a href="/pending" class="{% if path.startswith('/pending') %}active{% endif %}"><i data-lucide="clock"></i> Заявка</a>
+        {% elif request.state.layout_company_status == 'rejected' %}
+        <a href="/rejected" class="{% if path.startswith('/rejected') %}active{% endif %}"><i data-lucide="circle-x"></i> Заявка</a>
+        {% endif %}
+        <a href="/support" class="{% if path.startswith('/support') %}active{% endif %}"><i data-lucide="headphones"></i> Поддержка<span class="nav-count{% if request.state.layout_support_alert_count %} alert-count{% endif %}"{% if not request.state.layout_support_alert_count %} hidden{% endif %}>{{ request.state.layout_support_alert_count or '' }}</span></a>
+        <a href="/profile" class="{% if path.startswith('/change-password') or path.startswith('/profile') %}active{% endif %}"><i data-lucide="user-round"></i> Профиль</a>
+      </nav>
+    </aside>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {{ site_footer() }}
+</div>
+{% endblock %}

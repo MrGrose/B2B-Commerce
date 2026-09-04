@@ -1,0 +1,34 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, ticket_status_badge, alert, support_message_thread %}
+{% block title %}{{ ticket.subject }}{% endblock %}
+{% block content %}
+{{ back_link('/admin/support', 'К списку') }}
+<div class="page-head">
+  <div>
+    <h1>{{ ticket.subject }}</h1>
+    <p class="text-muted mb-0">{{ ticket.company_name }} · создан {{ ticket.created_at | local_datetime }}</p>
+  </div>
+  <div class="head-actions">{{ ticket_status_badge(ticket.status) }}</div>
+</div>
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{% if success %}{{ alert(success, 'success') }}{% endif %}
+{{ support_message_thread(ticket, customer_view=false) }}
+{% if ticket.status == 'open' %}
+<form method="post" hx-boost="false" action="/admin/support/{{ ticket.id }}/reply" class="form-stack form-stack-wide support-reply-form">
+  {{ csrf_input() }}
+  <div class="field">
+    <label for="body">Ответ</label>
+    <textarea class="form-control" id="body" name="body" rows="4" required></textarea>
+  </div>
+  <div class="form-actions support-ticket-actions">
+    <button class="btn btn-primary" type="submit">Ответить</button>
+  </div>
+</form>
+<form method="post" hx-boost="false" action="/admin/support/{{ ticket.id }}/close" class="support-close-form">
+  {{ csrf_input() }}
+  <button class="btn" type="submit">Закрыть тикет</button>
+</form>
+{% else %}
+<p class="text-muted">Тикет закрыт.</p>
+{% endif %}
+{% endblock %}

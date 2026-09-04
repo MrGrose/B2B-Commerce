@@ -1,0 +1,189 @@
+{% from "macros/ui.html" import product_status_options %}
+
+{% macro catalog_sort_options(selected='') -%}
+<option value="" {% if not selected %}selected{% endif %}>По умолчанию</option>
+<option value="date_desc" {% if selected == 'date_desc' %}selected{% endif %}>Сначала новые</option>
+<option value="date_asc" {% if selected == 'date_asc' %}selected{% endif %}>Сначала старые</option>
+<option value="price_asc" {% if selected == 'price_asc' %}selected{% endif %}>Цена ↑</option>
+<option value="price_desc" {% if selected == 'price_desc' %}selected{% endif %}>Цена ↓</option>
+<option value="stock_desc" {% if selected == 'stock_desc' %}selected{% endif %}>Остаток ↓</option>
+<option value="stock_asc" {% if selected == 'stock_asc' %}selected{% endif %}>Остаток ↑</option>
+{%- endmacro %}
+
+{% macro admin_sort_options(selected='date_desc') -%}
+<option value="date_desc" {% if selected == 'date_desc' %}selected{% endif %}>Сначала новые</option>
+<option value="date_asc" {% if selected == 'date_asc' %}selected{% endif %}>Сначала старые</option>
+<option value="price_asc" {% if selected == 'price_asc' %}selected{% endif %}>Цена ↑</option>
+<option value="price_desc" {% if selected == 'price_desc' %}selected{% endif %}>Цена ↓</option>
+<option value="stock_desc" {% if selected == 'stock_desc' %}selected{% endif %}>Остаток ↓</option>
+<option value="stock_asc" {% if selected == 'stock_asc' %}selected{% endif %}>Остаток ↑</option>
+{%- endmacro %}
+
+{% macro filter_bar(
+  mode,
+  form_id,
+  action,
+  q='',
+  category_id='',
+  brand_id='',
+  model_year='',
+  sort='',
+  status='',
+  brand_stats=None,
+  model_year_stats=None,
+  category_stats=None,
+  catalog_total_all=0,
+  brands=None,
+  categories=None,
+  reset_href='/catalog',
+  clear_url='/catalog',
+  mobile_mq='(max-width: 700px)'
+) -%}
+<form
+  class="filter-bar filter-bar--{{ mode }}"
+  method="get"
+  action="{{ action }}"
+  id="{{ form_id }}"
+  data-filter-bar
+  data-filter-clear-url="{{ clear_url }}"
+  data-filter-mobile-mq="{{ mobile_mq }}"
+>
+  <div class="filter-bar__main">
+    <div class="search filter-bar__search">
+      <i data-lucide="search"></i>
+      <input
+        type="search"
+        id="q"
+        name="q"
+        value="{{ q }}"
+        placeholder="{% if mode == 'catalog' %}Поиск по названию или бренду{% else %}Поиск по названию, бренду…{% endif %}"
+        autocomplete="off"
+      >
+    </div>
+    <div class="filter-bar__actions">
+      <button
+        type="button"
+        class="btn filter-bar__trigger"
+        data-filter-dialog-open
+        aria-haspopup="dialog"
+        aria-controls="{{ form_id }}-dialog"
+      >
+        <i data-lucide="sliders-horizontal"></i>
+        {% if mode == 'catalog' %}Фильтры{% else %}Фильтр{% endif %}
+      </button>
+      {% if mode == 'admin' %}
+      <div class="field filter-bar__field filter-bar__field--sort">
+        <select
+          class="form-control"
+          id="sort"
+          name="sort"
+          aria-label="Сортировка"
+          data-filter-auto-submit
+        >
+          {{ admin_sort_options(sort) }}
+        </select>
+      </div>
+      {% elif mode == 'catalog' %}
+      <div class="field filter-bar__field filter-bar__field--sort filter-bar__sort--desktop">
+        <select
+          class="form-control"
+          id="sort"
+          name="sort"
+          aria-label="Сортировка"
+          data-filter-field-sync="sort"
+          data-filter-auto-submit
+        >
+          {{ catalog_sort_options(sort) }}
+        </select>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% if mode == 'catalog' %}
+  {% if category_id %}<input type="hidden" name="category_id" value="{{ category_id }}">{% endif %}
+  <div class="filter-pills filter-bar__pills">
+    <a class="pill{% if not category_id %} active{% endif %}" href="{{ catalog_url(q, brand_id=brand_id, model_year=model_year, sort=sort) }}">
+      Все <span>{{ catalog_total_all }}</span>
+    </a>
+    {% for cat in category_stats or [] %}
+    <a class="pill{% if category_id == cat.id|string %} active{% endif %}" href="{{ catalog_url(q, cat.id, brand_id=brand_id, model_year=model_year, sort=sort) }}">
+      {{ cat.name }} <span>{{ cat.count }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <dialog id="{{ form_id }}-dialog" class="filter-bar__dialog admin-modal" aria-labelledby="{{ form_id }}-dialog-title">
+    <div class="filter-bar__dialog-header admin-modal-head">
+      <div>
+        <strong id="{{ form_id }}-dialog-title">Фильтры</strong>
+      </div>
+      <button type="button" class="admin-modal-close filter-bar__dialog-close" data-filter-dialog-close aria-label="Закрыть">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="filter-bar__dialog-body admin-modal-body">
+      <div class="filter-bar__fields">
+        <div class="field filter-bar__field">
+          <label for="brand_id">Бренд</label>
+          <select class="form-control" id="brand_id" name="brand_id" {% if mode == 'catalog' %}data-filter-auto-submit{% endif %}>
+            <option value="">Все</option>
+            {% if mode == 'catalog' %}
+            {% for brand in brand_stats or [] %}
+            <option value="{{ brand.id }}" {% if brand_id == brand.id|string %}selected{% endif %}>{{ brand.name }} ({{ brand.count }})</option>
+            {% endfor %}
+            {% else %}
+            {% for brand in brands or [] %}
+            <option value="{{ brand.id }}" {% if brand_id == brand.id|string %}selected{% endif %}>{{ brand.name }}</option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+        {% if mode == 'admin' %}
+        <div class="field filter-bar__field">
+          <label for="category_id">Категория</label>
+          <select class="form-control" id="category_id" name="category_id">
+            <option value="">Все</option>
+            {% for category in categories or [] %}
+            <option value="{{ category.id }}" {% if category_id == category.id|string %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="field filter-bar__field">
+          <label for="model_year">Год</label>
+          {% if model_year_stats %}
+          <select class="form-control" id="model_year" name="model_year"{% if mode == 'catalog' %} data-filter-auto-submit{% endif %}>
+            <option value="">Все</option>
+            {% for year_stat in model_year_stats %}
+            <option value="{{ year_stat.year }}" {% if model_year == year_stat.year|string %}selected{% endif %}>{{ year_stat.year }} ({{ year_stat.count }})</option>
+            {% endfor %}
+          </select>
+          {% else %}
+          <input class="form-control" id="model_year" name="model_year" value="{{ model_year }}" inputmode="numeric">
+          {% endif %}
+        </div>
+        {% if mode == 'admin' %}
+        <div class="field filter-bar__field">
+          <label for="status">Статус</label>
+          <select class="form-control" id="status" name="status">
+            <option value="" {% if not status %}selected{% endif %}>Все</option>
+            {{ product_status_options(status or '') }}
+          </select>
+        </div>
+        {% endif %}
+        {% if mode == 'catalog' %}
+        <div class="field filter-bar__field filter-bar__field--sort filter-bar__sort--mobile">
+          <select class="form-control" id="{{ form_id }}-sort-mobile" aria-label="Сортировка" data-filter-field-twin="sort" disabled>
+            {{ catalog_sort_options(sort) }}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="filter-bar__dialog-actions">
+      <a class="btn" href="{{ reset_href }}">Сбросить</a>
+      <button class="btn btn-primary" type="submit">Применить</button>
+    </div>
+  </dialog>
+</form>
+{%- endmacro %}

@@ -1,0 +1,47 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import back_link, invoice_status_badge, invoice_payment_details, invoice_preview_button, invoice_preview_modal %}
+{% block title %}Счёт {{ invoice.number }}
+{% endblock %}
+{% block content %}
+<div class="invoice-detail">
+{{ back_link('/invoices', 'К списку счетов') }}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">СЧЁТ</div>
+    <h1>№ {{ invoice.number }}</h1>
+  </div>
+  <div class="head-actions">
+    {{ invoice_status_badge(invoice.status) }}
+    {{ invoice_preview_button(request.url.path ~ '/preview.pdf') }}
+    <a class="btn btn-sm" href="{{ request.url.path }}/download.pdf" hx-boost="false">PDF</a>
+  </div>
+</div>
+<div class="detail-grid detail-grid-2-1">
+  <section class="panel">
+    <div class="panel-head"><strong>Позиции</strong></div>
+    {% set form_action = '/invoices/' ~ invoice.id ~ '/items' %}
+    {% include "invoices/_items_edit_slot.html" %}
+  </section>
+  <aside class="summary">
+    {% if invoice.payment_instructions or invoice.seller.legal_name or invoice.seller.inn %}
+    <div class="summary-title">Реквизиты оплаты</div>
+    {{ invoice_payment_details(invoice) }}
+    <hr>
+    {% endif %}
+    <ul class="meta-list">
+      <li>Создан: <strong>{{ invoice.created_at | local_datetime }}</strong></li>
+      <li>Оплатить до: <strong>{{ invoice.expires_at | local_datetime }}</strong></li>
+      {% if invoice.paid_at %}<li>Оплачен: <strong>{{ invoice.paid_at | local_datetime }}</strong></li>{% endif %}
+      {% if invoice.shipped_at %}<li>Отгружен: <strong>{{ invoice.shipped_at | local_datetime }}</strong></li>{% endif %}
+    </ul>
+    {% if invoice.status == 'awaiting_payment' %}
+    <form method="post" hx-boost="false" action="/invoices/{{ invoice.id }}/cancel" class="form-actions invoice-cancel-form">
+      {{ csrf_input() }}
+      <button type="submit" class="btn btn-outline-danger">Отменить счёт</button>
+    </form>
+    {% endif %}
+  </aside>
+</div>
+</div>
+{{ invoice_preview_modal() }}
+{% endblock %}

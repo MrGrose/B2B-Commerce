@@ -1,0 +1,138 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, company_status_badge, alert, invoice_status_badge, copy_btn %}
+{% block title %}{{ company.name }}{% endblock %}
+{% block content %}
+{{ back_link('/admin/companies', 'К списку') }}
+<div class="page-head">
+  <div>
+    <h1>{{ company.name }}</h1>
+    <div style="margin-top:8px;">{{ company_status_badge(company.status) }}</div>
+  </div>
+  <a class="btn" href="/admin/companies/{{ company.id }}/edit">Изменить</a>
+</div>
+{% if credentials %}
+<div class="alert alert-warning" data-alert-persist>
+  <strong>Новый временный пароль.</strong> Показывается один раз.
+  <div style="margin-top:8px;">
+    Login: <code>{{ credentials.login }}</code> {{ copy_btn(credentials.login) }}<br>
+    Пароль: <code>{{ credentials.temporary_password }}</code> {{ copy_btn(credentials.temporary_password) }}
+  </div>
+</div>
+{% endif %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<div class="detail-grid">
+  <section class="panel">
+    <div class="panel-head"><strong>Данные</strong></div>
+    <div style="padding:20px;">
+      <dl class="dl-grid">
+        <dt>Юр. название</dt><dd>{{ company.legal_name or "—" }}</dd>
+        <dt>ИНН</dt><dd>{{ company.inn or "—" }}</dd>
+        <dt>Email</dt><dd>{{ company.contact_email or "—" }}</dd>
+        <dt>Телефон</dt><dd>{{ company.contact_phone or "—" }}</dd>
+        <dt>Юр. адрес</dt><dd>{{ company.legal_address or "—" }}</dd>
+        <dt>Контактное лицо</dt><dd>{{ company.contact_person or "—" }}</dd>
+        <dt>КПП</dt><dd>{{ company.kpp or "—" }}</dd>
+        <dt>Адрес доставки</dt><dd>{{ company.delivery_address or "—" }}</dd>
+        <dt>Контакт получателя</dt><dd>{{ company.delivery_contact or "—" }}</dd>
+        <dt>Юрлицо поставщика</dt>
+        <dd>
+          {{ company.billing_entity_name or "—" }}
+          {% if company.status == "pending" %}
+          {% if company.billing_entity_id %}
+          <div class="text-secondary" style="margin-top:4px;">Готова к одобрению</div>
+          {% else %}
+          <div class="text-danger" style="margin-top:4px;">Назначьте юрлицо перед одобрением</div>
+          {% endif %}
+          {% endif %}
+        </dd>
+        <dt>Дата заявки</dt><dd>{{ company.created_at | local_datetime }}</dd>
+        {% if company.rejection_reason %}
+        <dt>Причина отказа</dt><dd>{{ company.rejection_reason }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><strong>Учётка</strong></div>
+    <div style="padding:20px;">
+      {% if company.account %}
+      <dl class="dl-grid">
+        <dt>Login</dt><dd><code>{{ company.account.login }}</code></dd>
+        <dt>Статус</dt><dd>{% if company.account.is_active %}активна{% else %}выключена{% endif %}</dd>
+        <dt>Смена пароля</dt><dd>{% if company.account.must_change_password %}требуется{% else %}нет{% endif %}</dd>
+        <dt>Последний вход</dt><dd>{{ company.account.last_login_at | local_datetime }}</dd>
+      </dl>
+      {% else %}
+      <p class="text-secondary mb-0">Учётка не найдена.</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+<section class="panel" style="margin-top:20px;">
+  <div class="panel-head"><strong>Счета</strong></div>
+  {% if invoices %}
+  <div class="table-wrap data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Номер</th>
+          <th>Статус</th>
+          <th>Сумма</th>
+          <th>Создан</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr>
+          <td data-label="Номер"><a href="/admin/invoices/{{ invoice.id }}">{{ invoice.number }}</a></td>
+          <td data-label="Статус">{{ invoice_status_badge(invoice.status) }}</td>
+          <td data-label="Сумма">{{ invoice.total | money }}</td>
+          <td data-label="Создан">{{ invoice.created_at | local_datetime }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:20px;"><p class="text-secondary mb-0">Счетов пока нет.</p></div>
+  {% endif %}
+</section>
+{% if company.account %}
+<div class="form-actions">
+  {% if company.status == "pending" %}
+  {% if company.billing_entity_id %}
+  <form method="post" hx-boost="false" action="/admin/companies/{{ company.id }}/approve">
+    {{ csrf_input() }}
+    <button class="btn btn-success" type="submit">Одобрить</button>
+  </form>
+  {% else %}
+  <button class="btn btn-success" type="button" disabled title="Назначьте юрлицо поставщика">Одобрить</button>
+  <span class="text-secondary" style="margin-left:8px;">Сначала назначьте юрлицо в «Изменить»</span>
+  {% endif %}
+  <form method="post" hx-boost="false" action="/admin/companies/{{ company.id }}/reject" class="form-stack" style="flex-direction:row;gap:8px;align-items:end;">
+    {{ csrf_input() }}
+    <div class="field" style="margin:0;">
+      <label for="reason">Причина отказа</label>
+      <input class="form-control" id="reason" name="reason" placeholder="Необязательно">
+    </div>
+    <button class="btn btn-outline-danger" type="submit">Отклонить</button>
+  </form>
+  {% endif %}
+  <form method="post" hx-boost="false" action="/admin/companies/{{ company.id }}/reset-password">
+    {{ csrf_input() }}
+    <button class="btn" type="submit">Сбросить пароль</button>
+  </form>
+  {% if company.status == "active" %}
+  <form method="post" hx-boost="false" action="/admin/companies/{{ company.id }}/deactivate">
+    {{ csrf_input() }}
+    <button class="btn btn-outline-danger" type="submit">Деактивировать</button>
+  </form>
+  {% elif company.status == "suspended" %}
+  <form method="post" hx-boost="false" action="/admin/companies/{{ company.id }}/activate">
+    {{ csrf_input() }}
+    <button class="btn btn-success" type="submit">Активировать</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

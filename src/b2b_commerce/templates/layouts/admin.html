@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import logo %}
+{% block body %}
+{% set path = request.url.path %}
+<div class="app" hx-boost="true" hx-target="main.content" hx-select="main.content" hx-swap="innerHTML show:top">
+  <header class="topbar topbar-admin">
+    <a href="/admin" class="logo-link">{{ logo(admin=true) }}</a>
+    <div class="topbar-right">
+      {% if request.state.layout_user_login %}
+      <form method="post" action="/logout" class="topbar-logout-form" hx-boost="false">
+        {{ csrf_input() }}
+        <button type="submit" class="btn-icon topbar-logout" title="Выйти" aria-label="Выйти">
+          <i data-lucide="log-out"></i>
+        </button>
+      </form>
+      <a href="/admin" class="user-menu" title="Админ — {{ request.state.layout_user_login }}">
+        <span class="avatar">{{ request.state.layout_user_initials }}</span>
+        <span class="user-menu-text">
+          <span class="user-menu-name">Администратор</span>
+          <span class="user-menu-login">{{ request.state.layout_user_login }}</span>
+        </span>
+      </a>
+      {% endif %}
+    </div>
+  </header>
+  <div class="app-body">
+    <aside class="sidebar sidebar-admin">
+      <nav>
+        <a href="/admin" class="{% if path == '/admin' %}active{% endif %}"><i data-lucide="layout-dashboard"></i> Дашборд</a>
+        <a href="/admin/companies" class="{% if path.startswith('/admin/companies') %}active{% endif %}"><i data-lucide="building-2"></i> Компании</a>
+        <a href="/admin/products" class="{% if path.startswith('/admin/products') %}active{% endif %}"><i data-lucide="package"></i> Товары</a>
+        <a href="/admin/invoices" class="{% if path.startswith('/admin/invoices') %}active{% endif %}"><i data-lucide="file-text"></i> Счета<span class="nav-count{% if request.state.layout_invoice_recent_count %} alert-count{% endif %}"{% if not request.state.layout_invoice_recent_count %} hidden{% endif %}>{{ request.state.layout_invoice_recent_count or '' }}</span></a>
+        <a href="/admin/finance" class="{% if path.startswith('/admin/finance') %}active{% endif %}"><i data-lucide="bar-chart-3"></i> Финансы</a>
+        <a href="/admin/rapira" class="{% if path.startswith('/admin/rapira') %}active{% endif %}"><i data-lucide="truck"></i> Rapira</a>
+        <a href="/admin/support" class="{% if path.startswith('/admin/support') %}active{% endif %}"><i data-lucide="headphones"></i> Поддержка<span class="nav-count{% if request.state.layout_support_open_count %} alert-count{% endif %}"{% if not request.state.layout_support_open_count %} hidden{% endif %}>{{ request.state.layout_support_open_count or '' }}</span></a>
+        <a href="/admin/audit" class="{% if path.startswith('/admin/audit') %}active{% endif %}"><i data-lucide="scroll-text"></i> Логи</a>
+        <a href="/admin/settings" class="{% if path.startswith('/admin/settings') %}active{% endif %}"><i data-lucide="settings"></i> Настройки</a>
+      </nav>
+    </aside>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <dialog id="product-reservations-modal" class="admin-modal">
+    <div class="admin-modal-head">
+      <div>
+        <strong>Резерв по счетам</strong>
+        <span class="admin-modal-sub" id="product-reservations-title"></span>
+      </div>
+      <button type="button" class="admin-modal-close" onclick="document.getElementById('product-reservations-modal').close()" aria-label="Закрыть">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="product-reservations-body" class="admin-modal-body">
+      <p class="text-muted panel-empty">Выберите товар с резервом.</p>
+    </div>
+  </dialog>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import page_head, invoice_status_badge, empty_state, pagination, invoice_preview_button, invoice_preview_modal %}
+{% block title %}Счета
+{% endblock %}
+{% block content %}
+{% call page_head('ДОКУМЕНТЫ', 'Мои счета') %}{% endcall %}
+{% if not invoices %}
+{{ empty_state('Счетов ещё нет', 'Оформите заказ из корзины, чтобы получить счёт.', 'В каталог', '/catalog') }}
+{% else %}
+<div class="table-wrap data-table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Номер</th>
+        <th>Статус</th>
+        <th>Сумма</th>
+        <th>Создан</th>
+        <th>Оплатить до</th>
+        <th class="invoice-preview-col" aria-label="Предпросмотр"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in invoices %}
+      <tr>
+        <td data-label="Номер"><a class="link" href="/invoices/{{ invoice.id }}"><strong>№ {{ invoice.number }}</strong></a></td>
+        <td data-label="Статус">{{ invoice_status_badge(invoice.status) }}</td>
+        <td data-label="Сумма"><strong>{{ invoice.total | money }}</strong></td>
+        <td data-label="Создан">{{ invoice.created_at | local_datetime }}</td>
+        <td data-label="Оплатить до">{{ invoice.expires_at | local_datetime }}</td>
+        <td data-label="" class="invoice-preview-col">{{ invoice_preview_button('/invoices/' ~ invoice.id ~ '/preview.pdf', label='Предпросмотр счёта', icon_only=true) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pagination(page, total_pages, href='invoices') }}
+{% endif %}
+{{ invoice_preview_modal() }}
+{% endblock %}

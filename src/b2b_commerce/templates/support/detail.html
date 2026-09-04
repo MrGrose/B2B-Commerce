@@ -1,0 +1,33 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import back_link, ticket_status_badge, alert, support_message_thread %}
+{% block title %}{{ ticket.subject }}{% endblock %}
+{% block content %}
+{{ back_link('/support', 'К списку') }}
+<div class="page-head">
+  <div>
+    <h1>{{ ticket.subject }}</h1>
+    <p class="text-muted mb-0">Создан {{ ticket.created_at | local_datetime }}</p>
+  </div>
+  <div class="head-actions">{{ ticket_status_badge(ticket.status) }}</div>
+</div>
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{{ support_message_thread(ticket, customer_view=true) }}
+{% if ticket.status == 'open' %}
+<form method="post" hx-boost="false" action="/support/{{ ticket.id }}/reply" class="form-stack support-reply-form">
+  {{ csrf_input() }}
+  <div class="field">
+    <label for="body">Ваше сообщение</label>
+    <textarea class="form-control" id="body" name="body" rows="4" required placeholder="Опишите вопрос или уточнение"></textarea>
+  </div>
+  <div class="form-actions support-ticket-actions">
+    <button class="btn btn-primary" type="submit">Отправить</button>
+  </div>
+</form>
+<form method="post" hx-boost="false" action="/support/{{ ticket.id }}/close" class="support-close-form">
+  {{ csrf_input() }}
+  <button class="btn" type="submit">Закрыть обращение</button>
+</form>
+{% else %}
+<p class="text-muted">Тикет закрыт. Новые сообщения недоступны.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, invoice_status_badge, empty_state, pagination %}
+{% block title %}Счета{% endblock %}
+{% block content %}
+<div class="admin-invoices-page">
+{{ page_head('ОПЕРАЦИИ', 'Счета') }}
+
+<div class="form-actions admin-invoices-filters">
+  <a class="btn {% if not status_filter and not created_filter %}btn-primary{% endif %}" href="/admin/invoices">Все ({{ status_counts.all }})</a>
+  <a class="btn {% if created_filter == '24h' and not status_filter %}btn-primary{% endif %}" href="{{ admin_invoices_url('', created='24h') }}">За 24 ч ({{ last_24h_count }})</a>
+  <a class="btn {% if status_filter == 'awaiting_payment' %}btn-primary{% endif %}" href="{{ admin_invoices_url('awaiting_payment', created=created_filter) }}">Ожидают оплаты ({{ status_counts.awaiting_payment }})</a>
+  <a class="btn {% if status_filter == 'paid' %}btn-primary{% endif %}" href="{{ admin_invoices_url('paid', created=created_filter) }}">Оплачены{% if status_counts.paid %} ({{ status_counts.paid }}){% endif %}</a>
+  <a class="btn {% if status_filter == 'shipped' %}btn-primary{% endif %}" href="{{ admin_invoices_url('shipped', created=created_filter) }}">Отгружены{% if status_counts.shipped %} ({{ status_counts.shipped }}){% endif %}</a>
+  <a class="btn {% if status_filter == 'canceled' %}btn-primary{% endif %}" href="{{ admin_invoices_url('canceled', created=created_filter) }}">Отменены{% if status_counts.canceled %} ({{ status_counts.canceled }}){% endif %}</a>
+  <a class="btn {% if status_filter == 'expired' %}btn-primary{% endif %}" href="{{ admin_invoices_url('expired', created=created_filter) }}">Просрочены{% if status_counts.expired %} ({{ status_counts.expired }}){% endif %}</a>
+</div>
+
+{% if not invoices %}
+{{ empty_state('Счетов ещё нет', 'Счета появятся после оформления заказов клиентами.', '', '') }}
+{% else %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Номер счёта <i data-lucide="chevron-down"></i></th>
+        <th>Компания</th>
+        <th>Сумма</th>
+        <th>Создан</th>
+        <th>Статус</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in invoices %}
+      <tr class="clickable-row" onclick="window.location='/admin/invoices/{{ invoice.id }}'">
+        <td><a class="link" href="/admin/invoices/{{ invoice.id }}"><strong>№ {{ invoice.number }}</strong></a></td>
+        <td>{{ invoice.company_name }}</td>
+        <td><strong>{{ invoice.total | money }}</strong></td>
+        <td>{{ invoice.created_at | local_datetime }}</td>
+        <td>{{ invoice_status_badge(invoice.status) }}</td>
+        <td>
+          <button type="button" class="dots" aria-label="Открыть счёт" onclick="event.stopPropagation(); window.location='/admin/invoices/{{ invoice.id }}'">•••</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if created_filter %}{{ pagination(page, total_pages, '', '', '', '', status_filter, 'admin_invoices', prev_href=admin_invoices_url(status_filter, page - 1, created_filter) if page > 1 else none, next_href=admin_invoices_url(status_filter, page + 1, created_filter) if page < total_pages else none) }}{% else %}{{ pagination(page, total_pages, '', '', '', '', '', status_filter, 'admin_invoices') }}{% endif %}
+{% endif %}
+</div>
+{% endblock %}

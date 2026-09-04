@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import auth_shell, alert %}
+{% block title %}Вход{% endblock %}
+{% block body %}
+{% call auth_shell('Вход') %}
+  {% if error %}{{ alert(error, 'danger') }}{% endif %}
+  <form method="post" hx-boost="false" action="/login" class="form-stack auth-form" data-auth-form>
+    {{ csrf_input() }}
+    <div class="field">
+      <label for="login">Логин</label>
+      <input class="form-control" id="login" name="login" required autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Пароль</label>
+      <input class="form-control" id="password" name="password" type="password" required autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary w-100" type="submit">Войти</button>
+  </form>
+  <p class="auth-footer text-secondary">
+    Нет доступа? <a href="/register">Отправить заявку</a>
+  </p>
+{% endcall %}
+{% endblock %}

@@ -1,0 +1,155 @@
+networks:
+  b2b_commerce:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.10.0/24
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: b2b-commerce-postgres
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - b2b_commerce
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: b2b-commerce-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    networks:
+      - b2b_commerce
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: b2b-commerce-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    env_file: [.env]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - miniodata:/data
+    networks:
+      - b2b_commerce
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: b2b-commerce:${B2B_COMMERCE_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: b2b-commerce-api
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      APP_ENV: prod
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_SECURE: "false"
+    command:
+      - uvicorn
+      - b2b_commerce.main:app
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --proxy-headers
+      - --forwarded-allow-ips
+      - ${FORWARDED_ALLOW_IPS}
+      - --app-dir
+      - src
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - b2b_commerce
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)",
+        ]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      start_period: 60s
+
+  worker:
+    image: b2b-commerce:${B2B_COMMERCE_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: b2b-commerce-worker
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      APP_ENV: prod
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_SECURE: "false"
+    command: ["arq", "b2b_commerce.worker.WorkerSettings"]
+    networks:
+      - b2b_commerce
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "tr '\\0' ' ' </proc/1/cmdline | grep -q 'arq.*WorkerSettings'",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

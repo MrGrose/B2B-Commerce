@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import back_link %}
+{% block title %}Правовая информация{% endblock %}
+{% block body %}
+<div class="standalone-page">
+  <div class="standalone-card legal-index">
+    {{ back_link('/login', 'На главную') }}
+    <h1>Правовая информация</h1>
+    <p class="text-secondary">Документы в разработке. Ниже — черновые страницы-заглушки.</p>
+    <ul class="legal-links">
+      {% for slug, page in pages.items() %}
+      <li><a class="link" href="/legal/{{ slug }}">{{ page.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

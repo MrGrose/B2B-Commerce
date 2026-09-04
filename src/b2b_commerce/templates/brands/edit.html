@@ -1,0 +1,25 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, alert %}
+{% block title %}Изменить {{ brand.name }}{% endblock %}
+{% block content %}
+{{ back_link('/admin/settings?tab=catalog', 'К настройкам каталога') }}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">КАТАЛОГ</div>
+    <h1>Изменить бренд</h1>
+  </div>
+</div>
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<p class="text-muted" style="margin-bottom:18px;">Slug: <code>{{ brand.slug }}</code> · товаров: {{ product_count }}</p>
+<form method="post" hx-boost="false" action="/admin/brands/{{ brand.id }}/edit" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="field">
+    <label for="name">Название</label>
+    <input class="form-control" id="name" name="name" value="{{ brand.name }}" required>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Сохранить</button>
+    <a class="btn" href="/admin/settings?tab=catalog">Отмена</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import back_link, product_visual, alert, catalog_cart_controls, stock_availability_badge %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+{{ back_link('/catalog', 'К каталогу') }}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<div class="product-detail">
+  <div class="product-gallery">
+    {% if product.images %}
+    <div class="product-gallery-carousel" data-product-gallery>
+      <div class="gallery-main">
+        {% if product.images|length > 1 %}
+        <button type="button" class="gallery-nav gallery-prev" aria-label="Предыдущее фото"><i data-lucide="chevron-left"></i></button>
+        {% endif %}
+        <img src="/media/{{ product.images[0].storage_key }}" alt="{{ product.name }}" class="gallery-main-image" role="button" tabindex="0" data-gallery-lightbox-trigger aria-label="Открыть фото в полном размере">
+        {% if product.images|length > 1 %}
+        <button type="button" class="gallery-nav gallery-next" aria-label="Следующее фото"><i data-lucide="chevron-right"></i></button>
+        <span class="gallery-counter">1 / {{ product.images|length }}</span>
+        {% endif %}
+      </div>
+      {% if product.images|length > 1 %}
+      <div class="gallery-thumbs">
+        {% for image in product.images %}
+        <button type="button" class="gallery-thumb{% if loop.first %} active{% endif %}" data-src="/media/{{ image.storage_key }}" aria-label="Фото {{ loop.index }}">
+          <img src="/media/{{ image.storage_key }}" alt="">
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    {{ product_visual(product.id | product_tone, large=true) }}
+    {% endif %}
+  </div>
+  <div class="product-info">
+    <h1>{{ product.name }}</h1>
+    <p class="price">{{ product.sale_price | money }}</p>
+    <p class="availability product-stock-line">{{ stock_availability_badge(availability) }}</p>
+    {% if product.description %}
+    <div class="product-description" data-description-toggle>
+      <div
+        class="product-description-text description is-clamped"
+        id="product-description-text"
+      >{{ product.description }}</div>
+      <button
+        type="button"
+        class="btn btn-link product-description-toggle"
+        hidden
+        aria-expanded="false"
+        aria-controls="product-description-text"
+      >Показать полностью</button>
+    </div>
+    {% else %}
+    <p class="description text-muted">Описание не указано.</p>
+    {% endif %}
+    {% if availability %}
+    <div class="product-cart-actions">
+      {{ catalog_cart_controls(product.id, cart_quantity, availability, '/catalog/products/' ~ product.id) }}
+    </div>
+    {% else %}
+    <p class="text-muted">Товар временно недоступен для заказа.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

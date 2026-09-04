@@ -1,0 +1,62 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, alert %}
+{% block title %}Изменить {{ entity.name }}{% endblock %}
+{% block content %}
+{{ back_link('/admin/billing-entities', 'К юрлицам') }}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">B2B</div>
+    <h1>Изменить юрлицо</h1>
+  </div>
+</div>
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<form method="post" hx-boost="false" action="/admin/billing-entities/{{ entity.id }}/edit" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="form-row">
+    <div class="field">
+      <label for="name">Наименование</label>
+      <input class="form-control" id="name" name="name" value="{{ entity.name }}" required>
+    </div>
+    <div class="field">
+      <label for="legal_name">Юридическое название</label>
+      <input class="form-control" id="legal_name" name="legal_name" value="{{ entity.legal_name }}" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="inn">ИНН</label>
+      <input class="form-control" id="inn" name="inn" value="{{ entity.inn }}" required>
+    </div>
+    <div class="field">
+      <label for="kpp">КПП</label>
+      <input class="form-control" id="kpp" name="kpp" value="{{ entity.kpp or '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label for="legal_address">Юридический адрес</label>
+    <input class="form-control" id="legal_address" name="legal_address" value="{{ entity.legal_address or '' }}">
+  </div>
+  <div class="field">
+    <label for="bank_name">Банк</label>
+    <input class="form-control" id="bank_name" name="bank_name" value="{{ entity.bank_name or '' }}">
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="bik">БИК</label>
+      <input class="form-control" id="bik" name="bik" value="{{ entity.bik or '' }}">
+    </div>
+    <div class="field">
+      <label for="bank_account">Расчётный счёт</label>
+      <input class="form-control" id="bank_account" name="bank_account" value="{{ entity.bank_account or '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label for="corr_account">Корреспондентский счёт</label>
+    <input class="form-control" id="corr_account" name="corr_account" value="{{ entity.corr_account or '' }}">
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Сохранить</button>
+    <a class="btn" href="/admin/billing-entities">Отмена</a>
+  </div>
+</form>
+{% endblock %}

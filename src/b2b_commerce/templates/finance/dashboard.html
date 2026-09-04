@@ -1,0 +1,96 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, stat_card, empty_state %}
+{% block title %}Финансы{% endblock %}
+{% block content %}
+{% call page_head('ФИНАНСОВЫЕ ПОКАЗАТЕЛИ', 'Финансы') %}
+<div class="filter-pills">
+  {% for value, label in period_options %}
+  <a class="pill{% if period == value %} active{% endif %}" href="/admin/finance?period={{ value }}">{{ label }}</a>
+  {% endfor %}
+</div>
+{% endcall %}
+<div class="stats-grid">
+  {{ stat_card('Оплачено', summary.paid_count, (summary.paid_total | money) ~ ' · по дате оплаты', 'credit-card', 'lime') }}
+  {{ stat_card('Выручка', summary.shipped_revenue | money, summary.shipped_count ~ ' отгрузок · оборот по отгруженным счетам', 'banknote', 'lime') }}
+  {{ stat_card('Прибыль', summary.shipped_margin | money, 'Себестоимость: ' ~ (summary.shipped_cost | money) ~ (summary.shipped_margin_percent is not none and ' · ' ~ summary.shipped_margin_percent ~ '%' or ''), 'wallet') }}
+  {{ stat_card('Стоимость склада', summary.warehouse_stock_value | money, 'остаток на складе × текущая себестоимость', 'box') }}
+</div>
+
+
+<div class="finance-grid" style="margin-bottom:18px;">
+  <section class="panel chart-panel">
+    <div class="panel-head">
+      <div><strong>Выручка и прибыль</strong><span>Последние 6 месяцев</span></div>
+      <div class="legend"><i></i> Выручка <i></i> Прибыль</div>
+    </div>
+    <div class="chart">
+      <div class="chart-bars">
+        {% for row in summary.monthly_series %}
+        <div class="bar-group">
+          <div class="bar revenue" style="height:{{ row.revenue_height }}%"></div>
+          <div class="bar margin" style="height:{{ row.margin_height }}%"></div>
+          <small>{{ row.label }}</small>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head">
+      <div><strong>Топ категорий</strong><span>По выручке за период</span></div>
+    </div>
+    {% if not summary.by_category %}
+    {{ empty_state('Нет отгрузок за период', 'Выберите другой период.', '', '', icon='truck', compact=true) }}
+    {% else %}
+    {% for row in summary.by_category %}
+    <div class="progress-row">
+      <div><span>{{ row.name }}</span><strong>{{ row.revenue | money }}</strong></div>
+      <div class="progress"><i style="width:{{ row.share_percent }}%"></i></div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </section>
+</div>
+
+<div class="finance-grid">
+  <section class="panel finance-compact-panel">
+    <div class="panel-head">
+      <div><strong>Компании</strong><span>Выручка за период</span></div>
+    </div>
+    {% if not summary.by_company %}
+    {{ empty_state('Нет отгрузок за период', 'Выберите другой период или дождитесь отгрузок.', '', '', icon='truck', compact=true) }}
+    {% else %}
+    <table class="compact finance-compact-table">
+      <tbody>
+        {% for row in summary.by_company %}
+        <tr>
+          <td><strong>{{ row.name }}</strong></td>
+          <td class="finance-compact-value"><strong>{{ row.revenue | money }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </section>
+  <section class="panel finance-compact-panel">
+    <div class="panel-head">
+      <div><strong>Топ товаров</strong><span>По количеству продаж · топ 10</span></div>
+    </div>
+    {% if not summary.by_product %}
+    {{ empty_state('Нет отгрузок за период', 'Выберите другой период или дождитесь отгрузок.', '', '', icon='truck', compact=true) }}
+    {% else %}
+    <table class="compact finance-compact-table">
+      <tbody>
+        {% for row in summary.by_product %}
+        <tr>
+          <td><strong>{{ row.name }}</strong></td>
+          <td class="finance-compact-value"><strong>{{ row.quantity }} шт.</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </section>
+</div>
+
+{% endblock %}

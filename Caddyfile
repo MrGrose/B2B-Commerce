@@ -1,0 +1,12 @@
+{$DOMAIN} {
+	email {$ACME_EMAIL}
+
+	encode gzip
+
+	reverse_proxy 127.0.0.1:8000 {
+		# Сбросить клиентский X-Forwarded-For: иначе spoof попадает в цепочку,
+		# uvicorn ProxyHeadersMiddleware выберет первый untrusted IP из XFF.
+		header_up -X-Forwarded-For
+		header_up X-Forwarded-For {remote_host}
+	}
+}

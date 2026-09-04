@@ -1,0 +1,51 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, alert %}
+{% block title %}Новая компания{% endblock %}
+{% block content %}
+{% call page_head('', 'Создать компанию') %}{% endcall %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<form method="post" hx-boost="false" action="/admin/companies" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="field">
+    <label for="name">Название</label>
+    <input class="form-control" id="name" name="name" value="{{ form.name or '' }}" required>
+  </div>
+  <div class="field">
+    <label for="legal_name">Юридическое название <span class="text-secondary">(необязательно)</span></label>
+    <input class="form-control" id="legal_name" name="legal_name" value="{{ form.legal_name or '' }}">
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="inn">ИНН <span class="text-secondary">(необязательно)</span></label>
+      <input class="form-control" id="inn" name="inn" value="{{ form.inn or '' }}">
+    </div>
+    <div class="field">
+      <label for="contact_phone">Телефон <span class="text-secondary">(необязательно)</span></label>
+      <input class="form-control" id="contact_phone" name="contact_phone" value="{{ form.contact_phone or '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label for="contact_email">Email <span class="text-secondary">(необязательно)</span></label>
+    <input class="form-control" id="contact_email" name="contact_email" type="email" value="{{ form.contact_email or '' }}">
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="login">Login <span class="text-secondary">(необязательно)</span></label>
+      <input class="form-control" id="login" name="login" value="{{ form.login or '' }}" placeholder="Пусто — сгенерировать">
+    </div>
+    <div class="field">
+      <label for="billing_entity_id">Юрлицо поставщика <span class="text-secondary">(необязательно)</span></label>
+      <select class="form-control" id="billing_entity_id" name="billing_entity_id">
+        <option value="">Не выбрано</option>
+        {% for entity in billing_entities %}
+        <option value="{{ entity.id }}" {% if form.billing_entity_id == entity.id|string %}selected{% endif %}>{{ entity.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Создать</button>
+    <a class="btn" href="/admin/companies">Отмена</a>
+  </div>
+</form>
+{% endblock %}

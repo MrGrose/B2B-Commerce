@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import logo, error_page %}
+{% block title %}Ошибка сервера{% endblock %}
+{% block body %}
+<div class="standalone-page">
+  <div class="standalone-card">
+    {{ logo() }}
+    {% if request.state.layout_user_login %}
+      {% if request.state.layout_is_admin %}
+    {{ error_page('triangle-alert', 'Что-то пошло не так', 'Попробуйте обновить страницу или вернитесь в панель.', 'Обновить', primary_reload=true, secondary_label='Панель', secondary_href='/admin') }}
+      {% else %}
+    {{ error_page('triangle-alert', 'Что-то пошло не так', 'Попробуйте обновить страницу или вернитесь в каталог.', 'Обновить', primary_reload=true, secondary_label='В каталог', secondary_href='/catalog') }}
+      {% endif %}
+    {% else %}
+    {{ error_page('triangle-alert', 'Что-то пошло не так', 'Попробуйте обновить страницу или вернитесь на вход.', 'Обновить', primary_reload=true, secondary_label='На вход', secondary_href='/login') }}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

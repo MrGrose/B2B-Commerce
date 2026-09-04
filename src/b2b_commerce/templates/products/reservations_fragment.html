@@ -1,0 +1,26 @@
+{% if not reservations %}
+<p class="text-muted panel-empty">Активных резервов нет.</p>
+{% else %}
+<div class="table-wrap data-table-wrap panel-table">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Счёт</th>
+        <th>Компания</th>
+        <th>Кол-во</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in reservations %}
+      <tr>
+        <td data-label="Счёт">
+          <a class="link" href="/admin/invoices/{{ row.invoice_id }}" hx-boost="false">{{ row.invoice_number }}</a>
+        </td>
+        <td data-label="Компания">{{ row.company_name }}</td>
+        <td data-label="Кол-во"><strong>{{ row.quantity }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}

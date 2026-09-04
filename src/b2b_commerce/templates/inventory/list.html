@@ -1,0 +1,36 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, empty_state %}
+{% block title %}Склад{% endblock %}
+{% block content %}
+{% call page_head('СКЛАД', 'Остатки') %}
+<a class="btn" href="/admin/inventory/movements">Журнал движений</a>
+{% endcall %}
+{% if not rows %}
+{{ empty_state('Остатков нет', 'Скорректируйте остаток в карточке товара.', '', '') }}
+{% else %}
+<div class="table-wrap data-table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Товар</th>
+        <th>Остаток</th>
+        <th>Резерв</th>
+        <th>Доступно</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td data-label="Товар"><strong>{{ row.product_name }}</strong></td>
+        <td data-label="Остаток">{{ row.quantity_on_hand }}</td>
+        <td data-label="Резерв">{{ row.reserved }}</td>
+        <td data-label="Доступно"><strong class="{% if row.available < 10 %}stock-low{% endif %}">{{ row.available }}</strong></td>
+        <td class="actions"><a class="link" href="/admin/products/{{ row.product_id }}">Карточка</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, product_visual, empty_state, pagination, stock_availability_badge, badge %}
+{% from "macros/filter_bar.html" import filter_bar %}
+{% block title %}Товары{% endblock %}
+{% block content %}
+<div class="admin-products-page">
+{% call page_head('КАТАЛОГ', 'Товары') %}
+<a class="btn" href="/admin/products/import"><i data-lucide="upload"></i> Импорт прайса</a>
+<a class="btn btn-primary" href="/admin/products/new"><i data-lucide="plus"></i> Новый товар</a>
+{% endcall %}
+{{ filter_bar(
+  'admin',
+  'admin-products-filters',
+  '/admin/products',
+  q=filters.q,
+  category_id=filters.category_id,
+  brand_id=filters.brand_id,
+  model_year=filters.model_year,
+  sort=filters.sort,
+  status=filters.status,
+  brands=brands,
+  categories=categories,
+  model_year_stats=model_year_stats,
+  reset_href='/admin/products',
+  clear_url=admin_products_url('', filters.brand_id, filters.category_id, filters.model_year, filters.status, filters.sort),
+  mobile_mq='(max-width: 900px)',
+) }}
+{% set has_filters = filters.q or filters.brand_id or filters.category_id or filters.model_year or filters.status or filters.sort != 'date_desc' %}
+{% if not products %}
+{% if has_filters %}
+{{ empty_state('Ничего не найдено', 'Попробуйте другой запрос или сбросьте фильтры.', 'Сбросить', '/admin/products') }}
+{% else %}
+{{ empty_state('Товаров нет', 'Товары ещё не созданы.', 'Новый товар', '/admin/products/new') }}
+{% endif %}
+{% else %}
+<div class="catalog-grid">
+  {% for entry in product_entries %}
+  {% set product = entry.product %}
+  {% set stock = entry.stock %}
+  {% set available = stock.available if stock else 0 %}
+  <article class="product-card">
+    <a class="product-card-media" href="/admin/products/{{ product.id }}">
+      {% if product.images %}
+      {{ product_visual(product.id | product_tone, image_src='/media/' ~ product.images[0].storage_key, alt=product.name) }}
+      {% else %}
+      {{ product_visual(product.id | product_tone) }}
+      {% endif %}
+    </a>
+    <div class="product-body">
+      <div class="product-meta">
+        <span>{{ product.category.name if product.category else 'Товар' }}</span>
+        {% if product.status != 'active' %}
+        {{ badge('Неактивен', 'muted') }}
+        {% else %}
+        {{ stock_availability_badge(available) }}
+        {% endif %}
+      </div>
+      <h3><a class="product-title-link" href="/admin/products/{{ product.id }}">{{ product.name }}</a></h3>
+      {% if product.brand_name %}<code>{{ product.brand_name }}</code>{% endif %}
+      <div class="product-foot">
+        <strong>{{ product.sale_price | money }}</strong>
+      </div>
+      <dl class="admin-product-stock">
+        <div>
+          <dt>Остаток</dt>
+          <dd>{{ stock.on_hand if stock else 0 }}</dd>
+        </div>
+        <div>
+          <dt>Резерв</dt>
+          <dd>
+            {% if stock and stock.reserved > 0 %}
+            <a
+              href="#"
+              class="link stock-reserve-link"
+              role="button"
+              title="Показать счета с резервом"
+              data-product-name="{{ product.name }}"
+              data-reservations-url="/admin/products/{{ product.id }}/reservations"
+            >{{ stock.reserved }}</a>
+            {% else %}
+            0
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt>Доступно</dt>
+          <dd class="{% if stock and stock.available < 10 %}stock-low{% endif %}">{{ available }}</dd>
+        </div>
+      </dl>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{{ pagination(page, total_pages, filters.q, filters.category_id, filters.brand_id, filters.model_year, filters.sort, filters.status, 'products') }}
+{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% from "macros/ui.html" import catalog_cart_controls %}
+{{ catalog_cart_controls(product_id, quantity, availability, next_url) }}
+{% if cart_items_count %}
+<span id="layout-cart-count" class="nav-count" hx-swap-oob="true">{{ cart_items_count }}</span>
+{% else %}
+<span id="layout-cart-count" class="nav-count" hx-swap-oob="true" hidden></span>
+{% endif %}

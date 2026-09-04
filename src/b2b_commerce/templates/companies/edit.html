@@ -1,0 +1,73 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, alert %}
+{% block title %}Изменить {{ company.name }}{% endblock %}
+{% block content %}
+{{ back_link('/admin/companies/' ~ company.id, 'К карточке') }}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Компании</div>
+    <h1>Изменить компанию</h1>
+  </div>
+</div>
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<form method="post" hx-boost="false" action="/admin/companies/{{ company.id }}/edit" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="field">
+    <label for="name">Название</label>
+    <input class="form-control" id="name" name="name" value="{{ company.name }}" required>
+  </div>
+  <div class="field">
+    <label for="legal_name">Юридическое название</label>
+    <input class="form-control" id="legal_name" name="legal_name" value="{{ company.legal_name or '' }}">
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="inn">ИНН</label>
+      <input class="form-control" id="inn" name="inn" value="{{ company.inn or '' }}">
+    </div>
+    <div class="field">
+      <label for="kpp">КПП</label>
+      <input class="form-control" id="kpp" name="kpp" value="{{ company.kpp or '' }}">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="contact_email">Email</label>
+      <input class="form-control" id="contact_email" name="contact_email" type="email" value="{{ company.contact_email or '' }}">
+    </div>
+    <div class="field">
+      <label for="contact_phone">Телефон</label>
+      <input class="form-control" id="contact_phone" name="contact_phone" value="{{ company.contact_phone or '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label for="contact_person">Контактное лицо</label>
+    <input class="form-control" id="contact_person" name="contact_person" value="{{ company.contact_person or '' }}">
+  </div>
+  <div class="field">
+    <label for="legal_address">Юридический адрес</label>
+    <input class="form-control" id="legal_address" name="legal_address" value="{{ company.legal_address or '' }}">
+  </div>
+  <div class="field">
+    <label for="delivery_address">Адрес доставки</label>
+    <input class="form-control" id="delivery_address" name="delivery_address" value="{{ company.delivery_address or '' }}">
+  </div>
+  <div class="field">
+    <label for="delivery_contact">Контакт получателя</label>
+    <input class="form-control" id="delivery_contact" name="delivery_contact" value="{{ company.delivery_contact or '' }}">
+  </div>
+  <div class="field">
+    <label for="billing_entity_id">Юрлицо поставщика</label>
+    <select class="form-control" id="billing_entity_id" name="billing_entity_id">
+      <option value="">Не выбрано</option>
+      {% for entity in billing_entities %}
+      <option value="{{ entity.id }}" {% if company.billing_entity_id == entity.id %}selected{% endif %}>{{ entity.name }} — {{ entity.inn }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Сохранить</button>
+    <a class="btn" href="/admin/companies/{{ company.id }}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

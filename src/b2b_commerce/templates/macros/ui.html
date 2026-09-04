@@ -1,0 +1,429 @@
+{% macro logo(admin=false) -%}
+<div class="logo">
+  <span class="logo-mark"><i data-lucide="zap"></i></span>
+  <span>B2B <span class="logo-accent">Commerce</span></span>
+  {%- if admin %}<small>ADMIN</small>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro badge(text, tone='neutral') -%}
+<span class="badge badge-{{ tone }}"><i></i>{{ text }}</span>
+{%- endmacro %}
+
+{% macro page_head(eyebrow='', title='') -%}
+<div class="page-head">
+  <div>
+    {%- if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <h1>{{ title }}</h1>
+  </div>
+  <div class="head-actions">{% if caller is defined %}{{ caller() }}{% endif %}</div>
+</div>
+{%- endmacro %}
+
+{% macro product_visual(tone='lime', large=false, image_src='', alt='Товар') -%}
+<div class="product-visual visual-{{ tone }}{% if large %} visual-large{% endif %}">
+  {%- if image_src %}
+  <img src="{{ image_src }}" alt="{{ alt }}">
+  {%- else %}
+  <div class="racket"></div>
+  <div class="visual-label">B2B<span>COMMERCE</span></div>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{% macro invoice_status_badge(status, style='full') -%}
+{%- if status == 'awaiting_payment' -%}
+{{ badge('#Ожидание' if style == 'short' else 'Ожидает оплаты', 'awaiting') }}
+{%- elif status == 'paid' -%}
+{{ badge('#Оплата' if style == 'short' else 'Оплачен', 'paid') }}
+{%- elif status == 'shipped' -%}
+{{ badge('#Отгрузка' if style == 'short' else 'Отгружен', 'shipped') }}
+{%- elif status == 'canceled' -%}
+{{ badge('#Отмена' if style == 'short' else 'Отменён', 'canceled') }}
+{%- elif status == 'expired' -%}
+{{ badge('#Истёк' if style == 'short' else 'Истёк', 'expired') }}
+{%- else -%}
+{{ badge(status, 'muted') }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro invoice_summary_status_badge(status) -%}
+{{ invoice_status_badge(status, 'short') }}
+{%- endmacro %}
+
+{% macro ticket_status_badge(status) -%}
+{%- if status == 'open' -%}
+{{ badge('Открыт', 'open') }}
+{%- else -%}
+{{ badge('Закрыт', 'closed') }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro stock_availability_badge(availability) -%}
+{%- if availability <= 0 -%}
+{{ badge('Нет в наличии', 'muted') }}
+{%- elif availability < 5 -%}
+{{ badge('Мало', 'warning') }}
+{%- elif availability <= 10 -%}
+{{ badge('Достаточно', 'shipped') }}
+{%- else -%}
+{{ badge('Много', 'success') }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro support_message_thread(ticket, customer_view=false) -%}
+<div class="support-thread" role="log" aria-label="Переписка">
+  {% for message in ticket.messages %}
+  {%- set outgoing = (customer_view and message.author_type == 'company') or (not customer_view and message.author_type == 'admin') -%}
+  <article class="support-bubble{% if outgoing %} support-bubble--outgoing{% else %} support-bubble--incoming{% endif %}">
+    <header class="support-bubble__meta">
+      <span class="support-bubble__author">{% if customer_view %}{% if message.author_type == 'company' %}Вы{% else %}Поддержка{% endif %}{% else %}{% if message.author_type == 'admin' %}Админ{% else %}Клиент{% endif %}{% endif %}</span>
+      <time datetime="{{ message.created_at.isoformat() }}">{{ message.created_at | local_datetime }}</time>
+    </header>
+    <p class="support-bubble__body">{{ message.body }}</p>
+  </article>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro site_footer() -%}
+<footer class="site-footer" aria-label="Правовая информация">
+  <div class="site-footer__inner">
+    <span class="site-footer__copy">© B2B Commerce</span>
+    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <nav class="site-footer__links">
+      <a href="/legal/privacy">Конфиденциальность</a>
+      <a href="/legal/terms">Соглашение</a>
+      <a href="/legal/offer">Оферта</a>
+    </nav>
+  </div>
+</footer>
+{%- endmacro %}
+
+{% macro auth_legal_links() -%}
+<nav class="auth-legal-links" aria-label="Правовая информация">
+  <a href="/legal/privacy">Конфиденциальность</a>
+  <a href="/legal/terms">Соглашение</a>
+  <a href="/legal/offer">Оферта</a>
+</nav>
+{%- endmacro %}
+
+
+{% macro company_status_badge(status) -%}
+{%- if status == 'active' -%}
+{{ badge('Активен', 'active') }}
+{%- elif status == 'pending' -%}
+{{ badge('На рассмотрении', 'awaiting') }}
+{%- elif status == 'rejected' -%}
+{{ badge('Отклонён', 'canceled') }}
+{%- else -%}
+{{ badge('Приостановлен', 'muted') }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro product_status_label(status) -%}
+{%- if status == 'active' -%}Активен
+{%- elif status == 'inactive' -%}Не активен
+{%- else -%}{{ status }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro product_status_badge(status) -%}
+{%- if status == 'active' -%}
+{{ badge('Активен', 'active') }}
+{%- elif status == 'inactive' -%}
+{{ badge('Не активен', 'muted') }}
+{%- else -%}
+{{ badge(status, 'muted') }}
+{%- endif -%}
+{%- endmacro %}
+
+
+{% macro product_status_hint() -%}
+<small class="text-secondary">Активен — на сайте. Не активен — скрыт с сайта.</small>
+{%- endmacro %}
+
+{% macro product_status_options(selected='') -%}
+<option value="active" {% if selected == 'active' %}selected{% endif %}>Активен</option>
+<option value="inactive" {% if selected == 'inactive' %}selected{% endif %}>Не активен</option>
+{%- endmacro %}
+
+{% macro alert(message, tone='danger', persist=false, hide_ms=none) -%}
+<div class="alert alert-{{ tone }}"{% if persist %} data-alert-persist{% endif %}{% if hide_ms is not none %} data-alert-hide-ms="{{ hide_ms }}"{% endif %}>{{ message }}</div>
+{%- endmacro %}
+
+{% macro message(text, tone='info', persist=false) -%}
+{{ alert(text, tone, persist) }}
+{%- endmacro %}
+
+{% macro invoice_payment_details(invoice) -%}
+{% if invoice.seller.legal_name or invoice.seller.inn or invoice.seller.bank_account %}
+<dl class="dl-grid invoice-payment-details">
+  {% if invoice.seller.legal_name %}
+  <dt>Получатель</dt>
+  <dd>{{ invoice.seller.legal_name }}</dd>
+  {% endif %}
+  {% if invoice.seller.inn %}
+  <dt>ИНН</dt>
+  <dd>{{ invoice.seller.inn }}</dd>
+  {% endif %}
+  {% if invoice.seller.kpp %}
+  <dt>КПП</dt>
+  <dd>{{ invoice.seller.kpp }}</dd>
+  {% endif %}
+  {% if invoice.seller.legal_address %}
+  <dt>Адрес</dt>
+  <dd>{{ invoice.seller.legal_address }}</dd>
+  {% endif %}
+  {% if invoice.seller.bank_name %}
+  <dt>Банк</dt>
+  <dd>{{ invoice.seller.bank_name }}</dd>
+  {% endif %}
+  {% if invoice.seller.bik %}
+  <dt>БИК</dt>
+  <dd>{{ invoice.seller.bik }}</dd>
+  {% endif %}
+  {% if invoice.seller.bank_account %}
+  <dt>Р/с</dt>
+  <dd>{{ invoice.seller.bank_account }}</dd>
+  {% endif %}
+  {% if invoice.seller.corr_account %}
+  <dt>К/с</dt>
+  <dd>{{ invoice.seller.corr_account }}</dd>
+  {% endif %}
+  <dt>Назначение</dt>
+  <dd>Оплата по счёту {{ invoice.number }}</dd>
+</dl>
+{% elif invoice.payment_instructions %}
+<p class="invoice-payment-text">{{ invoice.payment_instructions }}</p>
+{% endif %}
+{%- endmacro %}
+
+
+{% macro auth_shell(title, intro='', wide=false) -%}
+<div class="auth-page" data-auth-page>
+  <div class="auth-page__backdrop auth-page__backdrop--mono" aria-hidden="true"></div>
+  <div class="auth-page__backdrop auth-page__backdrop--color" aria-hidden="true"></div>
+  <div class="auth-page__content">
+    <div class="auth-card{% if wide %} auth-card--wide{% endif %}">
+      {{ logo() }}
+      <h1>{{ title }}</h1>
+      {%- if intro %}
+      <p class="auth-card__intro text-secondary">{{ intro }}</p>
+      {%- endif %}
+      {{ caller() }}
+    </div>
+  </div>
+  {{ site_footer() }}
+</div>
+{%- endmacro %}
+
+{% macro error_page(icon, title, body, primary_label='', primary_href='#', secondary_label='', secondary_href='#', primary_back=false, primary_reload=false) -%}
+<div class="error-page">
+  <div class="error-page__icon"><i data-lucide="{{ icon }}"></i></div>
+  <h1>{{ title }}</h1>
+  <p>{{ body }}</p>
+  {%- if primary_label or secondary_label %}
+  <div class="error-page__actions">
+    {%- if primary_label %}
+      {%- if primary_back %}
+    <button type="button" class="btn btn-primary" onclick="history.back()">{{ primary_label }}</button>
+      {%- elif primary_reload %}
+    <button type="button" class="btn btn-primary" onclick="location.reload()">{{ primary_label }}</button>
+      {%- else %}
+    <a class="btn btn-primary" href="{{ primary_href }}">{{ primary_label }}</a>
+      {%- endif %}
+    {%- endif %}
+    {%- if secondary_label %}
+    <a class="btn" href="{{ secondary_href }}">{{ secondary_label }}</a>
+    {%- endif %}
+  </div>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{% macro empty_state(title, text, action_label='', action_href='#', icon='package', compact=false) -%}
+<div class="empty{% if compact %} empty-compact{% endif %}">
+  <div class="empty-icon"><i data-lucide="{{ icon }}"></i></div>
+  <h2>{{ title }}</h2>
+  <p>{{ text }}</p>
+  {%- if action_label %}
+  <a class="btn btn-primary" href="{{ action_href }}">{{ action_label }} <i data-lucide="arrow-right"></i></a>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{% macro stat_card(label, value, detail='', icon='file-text', tone='default') -%}
+<div class="stat stat-{{ tone }}">
+  <div class="stat-top">
+    <span>{{ label }}</span>
+    <span class="stat-icon"><i data-lucide="{{ icon }}"></i></span>
+  </div>
+  <strong>{{ value }}</strong>
+  <small>{{ detail }}</small>
+</div>
+{%- endmacro %}
+
+{% macro back_link(href, label='К списку') -%}
+<a class="link-button invoice-back" href="{{ href }}"><i data-lucide="arrow-left" class="back-icon"></i> {{ label }}</a>
+{%- endmacro %}
+
+{% macro invoice_total_row(total) -%}
+<div class="invoice-total">
+  <span>Итого к оплате</span>
+  <strong>{{ total | money }}</strong>
+</div>
+{%- endmacro %}
+
+{% macro invoice_items_list(items, total=None) -%}
+<div class="line-items invoice-line-items invoice-list">
+  {% for item in items %}
+  <div class="line-item invoice-line-item">
+    <div class="invoice-line-main">
+      <strong>{{ item.product_name }}</strong>
+      <span class="invoice-line-meta">{{ item.quantity }} × {{ item.unit_price | money }}</span>
+    </div>
+    <strong class="invoice-line-total">{{ item.line_total | money }}</strong>
+  </div>
+  {% endfor %}
+</div>
+{% if total is not none %}{{ invoice_total_row(total) }}{% endif %}
+{%- endmacro %}
+
+{% macro list_page_url(p, href='catalog', q='', category_id='', brand_id='', model_year='', sort='', status='') -%}
+{% if href == 'products' -%}
+{{ admin_products_url(q, brand_id, category_id, model_year, status, sort, p) }}
+{% elif href == 'companies' -%}
+{{ admin_companies_url(status, q, p) }}
+{% elif href == 'invoices' -%}
+{{ customer_invoices_url(p) }}
+{% elif href == 'admin_invoices' -%}
+{{ admin_invoices_url(status, p) }}
+{% elif href == 'support' -%}
+{{ customer_support_url(p, status) }}
+{% elif href == 'admin_support' -%}
+{{ admin_support_url(p, status) }}
+{% elif href == 'billing_entities' -%}
+{{ admin_billing_entities_url(p) }}
+{% elif href == 'admin_audit' -%}
+{{ admin_audit_url(p) }}
+{% else -%}
+{{ catalog_url(q, category_id, brand_id=brand_id, model_year=model_year, sort=sort, page=p) }}
+{% endif -%}
+{%- endmacro %}
+
+{% macro pagination(page, total_pages, q='', category_id='', brand_id='', model_year='', sort='', status='', href='catalog', prev_href=None, next_href=None) -%}
+{% if total_pages > 1 %}
+{% set prev_url = prev_href or list_page_url(page - 1, href, q, category_id, brand_id, model_year, sort, status) %}
+{% set next_url = next_href or list_page_url(page + 1, href, q, category_id, brand_id, model_year, sort, status) %}
+<nav class="pagination" aria-label="Страницы">
+  {% if page > 1 %}
+  <a class="pagination__nav btn btn-secondary btn-icon" href="{{ prev_url }}" rel="prev" aria-label="Предыдущая страница">
+    <i data-lucide="chevron-left" aria-hidden="true"></i>
+  </a>
+  {% else %}
+  <span class="pagination__nav btn btn-secondary btn-icon is-disabled" aria-disabled="true" aria-label="Предыдущая страница">
+    <i data-lucide="chevron-left" aria-hidden="true"></i>
+  </span>
+  {% endif %}
+  <div class="pagination__pages">
+    {% for p in range(1, total_pages + 1) %}
+    {% set is_edge = p == 1 or p == total_pages %}
+    {% set is_near = p >= page - 1 and p <= page + 1 %}
+    {% if is_edge or is_near %}
+    {% if p == page %}
+    <span class="pagination__page is-active" aria-current="page">{{ p }}</span>
+    {% else %}
+    <a class="pagination__page" href="{{ list_page_url(p, href, q, category_id, brand_id, model_year, sort, status) }}">{{ p }}</a>
+    {% endif %}
+    {% elif p == 2 and page > 3 %}
+    <span class="pagination__ellipsis" aria-hidden="true">…</span>
+    {% elif p == total_pages - 1 and page < total_pages - 2 %}
+    <span class="pagination__ellipsis" aria-hidden="true">…</span>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% if page < total_pages %}
+  <a class="pagination__nav btn btn-secondary btn-icon" href="{{ next_url }}" rel="next" aria-label="Следующая страница">
+    <i data-lucide="chevron-right" aria-hidden="true"></i>
+  </a>
+  {% else %}
+  <span class="pagination__nav btn btn-secondary btn-icon is-disabled" aria-disabled="true" aria-label="Следующая страница">
+    <i data-lucide="chevron-right" aria-hidden="true"></i>
+  </span>
+  {% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}
+
+{% macro catalog_cart_controls(product_id, quantity, availability, next_url) -%}
+<div class="catalog-cart-slot" id="catalog-cart-{{ product_id }}">
+{% if quantity > 0 %}
+<div class="qty qty-catalog">
+  {% if quantity > 1 %}
+  <form method="post" action="/cart/items" class="qty-form" hx-boost="false" hx-select="#catalog-cart-{{ product_id }}" hx-post="/cart/items" hx-target="#catalog-cart-{{ product_id }}" hx-swap="innerHTML settle:0">
+    <input type="hidden" name="product_id" value="{{ product_id }}">
+    <input type="hidden" name="quantity" value="{{ quantity - 1 }}">
+    <input type="hidden" name="mode" value="set">
+    <input type="hidden" name="next_url" value="{{ next_url }}">
+    <button type="submit" aria-label="Уменьшить">−</button>
+  </form>
+  {% else %}
+  <form method="post" action="/cart/items/{{ product_id }}/remove" class="qty-form" hx-boost="false" hx-select="#catalog-cart-{{ product_id }}" hx-post="/cart/items/{{ product_id }}/remove" hx-target="#catalog-cart-{{ product_id }}" hx-swap="innerHTML settle:0">
+    <input type="hidden" name="next_url" value="{{ next_url }}">
+    <button type="submit" aria-label="Уменьшить">−</button>
+  </form>
+  {% endif %}
+  <span class="qty-value">{{ quantity }} шт</span>
+  <form method="post" action="/cart/items" class="qty-form" hx-boost="false" hx-select="#catalog-cart-{{ product_id }}" hx-post="/cart/items" hx-target="#catalog-cart-{{ product_id }}" hx-swap="innerHTML settle:0">
+    <input type="hidden" name="product_id" value="{{ product_id }}">
+    <input type="hidden" name="quantity" value="{{ quantity + 1 }}">
+    <input type="hidden" name="mode" value="set">
+    <input type="hidden" name="next_url" value="{{ next_url }}">
+    <button type="submit" aria-label="Увеличить" {% if quantity >= availability %}disabled{% endif %}>+</button>
+  </form>
+</div>
+{% else %}
+<form method="post" action="/cart/items" class="add-to-cart-form" hx-boost="false" hx-select="#catalog-cart-{{ product_id }}" hx-post="/cart/items" hx-target="#catalog-cart-{{ product_id }}" hx-swap="innerHTML settle:0">
+  <input type="hidden" name="product_id" value="{{ product_id }}">
+  <input type="hidden" name="quantity" value="1">
+  <input type="hidden" name="mode" value="add">
+  <input type="hidden" name="next_url" value="{{ next_url }}">
+  <button class="btn btn-primary btn-sm" type="submit"><i data-lucide="plus"></i> В корзину</button>
+</form>
+{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro copy_btn(value, label='Копировать') -%}
+<button type="button" class="btn" data-copy="{{ value }}" onclick="navigator.clipboard.writeText(this.dataset.copy).then(() => { this.textContent = 'Скопировано'; })">{{ label }}</button>
+{%- endmacro %}
+
+{% macro copy_credentials_btn(login, password, label='Скопировать логин и пароль') -%}
+<button type="button" class="btn" data-copy-credentials data-login="{{ login }}" data-password="{{ password }}" onclick="navigator.clipboard.writeText('Логин: ' + this.dataset.login + '\nПароль: ' + this.dataset.password).then(() => { this.textContent = 'Скопировано'; })">{{ label }}</button>
+{%- endmacro %}
+
+{% macro invoice_preview_button(pdf_url, label='Предпросмотр', extra_class='', icon_only=false) -%}
+{% if icon_only -%}
+<button type="button" class="btn btn-sm btn-icon btn-ghost invoice-preview-btn {{ extra_class }}" data-invoice-preview-open data-invoice-preview-url="{{ pdf_url }}" aria-label="{{ label }}" title="{{ label }}">
+  <i data-lucide="search" aria-hidden="true"></i>
+</button>
+{%- else -%}
+<button type="button" class="btn btn-sm {{ extra_class }}" data-invoice-preview-open data-invoice-preview-url="{{ pdf_url }}">{{ label }}</button>
+{%- endif %}
+{%- endmacro %}
+
+{% macro invoice_preview_modal(title='Предпросмотр счёта') -%}
+<dialog id="invoice-pdf-preview-modal" class="admin-modal invoice-pdf-preview-modal">
+  <div class="admin-modal-head">
+    <div><strong>{{ title }}</strong></div>
+    <button type="button" class="admin-modal-close" data-invoice-preview-close aria-label="Закрыть">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+  <div class="admin-modal-body">
+    <iframe id="invoice-pdf-preview-frame" class="invoice-pdf-preview-modal__frame" title="{{ title }}"></iframe>
+  </div>
+</dialog>
+{%- endmacro %}
+

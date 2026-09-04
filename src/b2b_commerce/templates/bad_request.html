@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import logo, error_page %}
+{% block title %}Неверный запрос{% endblock %}
+{% block body %}
+<div class="standalone-page">
+  <div class="standalone-card">
+    {{ logo() }}
+    {% if request.state.layout_user_login %}
+      {% if request.state.layout_is_admin %}
+    {{ error_page('circle-alert', 'Неверный запрос', 'Проверьте данные формы и попробуйте снова.', 'Панель', '/admin') }}
+      {% else %}
+    {{ error_page('circle-alert', 'Неверный запрос', 'Проверьте данные формы и попробуйте снова.', 'В каталог', '/catalog') }}
+      {% endif %}
+    {% else %}
+    {{ error_page('circle-alert', 'Неверный запрос', 'Проверьте данные формы и попробуйте снова.', 'На вход', '/login') }}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

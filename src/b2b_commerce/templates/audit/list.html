@@ -1,0 +1,41 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, empty_state, pagination %}
+{% block title %}Логи{% endblock %}
+{% block content %}
+{% call page_head('СОБЫТИЯ СИСТЕМЫ', 'Логи') %}
+{% if total is defined and total > 0 %}<span class="audit-count">{{ total }} записей</span>{% endif %}
+{% endcall %}
+{% if not logs %}
+{{ empty_state('Записей нет', 'Журнал появится после действий в системе.', '', '') }}
+{% else %}
+<section class="panel audit-panel">
+  <div class="table-wrap data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Время</th>
+          <th>Кто</th>
+          <th>Что произошло</th>
+          <th>Объект</th>
+          <th>Детали</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td data-label="Время">{{ log.created_at | local_datetime }}</td>
+          <td data-label="Кто"><strong>{{ log.actor_label }}</strong></td>
+          <td data-label="Что произошло"><strong>{{ log.action_label }}</strong></td>
+          <td data-label="Объект">{{ log.entity_label }}</td>
+          <td data-label="Детали"><span class="audit-details">{{ log.details }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% if total_pages > 1 %}
+{{ pagination(page, total_pages, href='admin_audit') }}
+{% endif %}
+{% endif %}
+{% endblock %}

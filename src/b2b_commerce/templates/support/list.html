@@ -1,0 +1,38 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import page_head, ticket_status_badge, empty_state, pagination %}
+{% block title %}Поддержка{% endblock %}
+{% block content %}
+{% call page_head('СВЯЗЬ С КОМАНДОЙ', 'Мои обращения') %}
+<a class="btn btn-primary" href="/support/new"><i data-lucide="plus"></i> Новое обращение</a>
+{% endcall %}
+<div class="form-actions" style="margin-bottom:16px;">
+  <a class="btn {% if status_filter == 'open' %}btn-primary{% endif %}" href="{{ customer_support_url('', 'open') }}">Открытые</a>
+  <a class="btn {% if status_filter == 'closed' %}btn-primary{% endif %}" href="{{ customer_support_url('', 'closed') }}">Закрытые</a>
+  <a class="btn {% if status_filter == 'all' %}btn-primary{% endif %}" href="{{ customer_support_url('', 'all') }}">Все</a>
+</div>
+{% if not tickets %}
+{{ empty_state('Обращений ещё нет', 'Создайте тикет, если нужна помощь с заказом или каталогом.', 'Новое обращение', '/support/new') }}
+{% else %}
+<div class="table-wrap data-table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Тема</th>
+        <th>Статус</th>
+        <th>Обновлён</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td data-label="Тема"><a class="link" href="/support/{{ ticket.id }}"><strong>{{ ticket.subject }}</strong></a></td>
+        <td data-label="Статус">{{ ticket_status_badge(ticket.status) }}</td>
+        <td data-label="Обновлён">{{ ticket.updated_at | local_datetime }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pagination(page, total_pages, '', '', '', '', status_filter, 'support') }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+.venv
+.git
+.github
+.cursor
+.lean-ctx
+docs
+tests
+fixtures
+scripts
+local_scripts
+.demo
+**/__pycache__
+*.pyc
+*.xlsx
+.env
+.DS_Store

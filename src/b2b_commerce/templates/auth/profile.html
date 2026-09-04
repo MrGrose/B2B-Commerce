@@ -1,0 +1,131 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import page_head, alert, company_status_badge, copy_btn %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+{% call page_head('УЧЁТНАЯ ЗАПИСЬ', 'Профиль') %}{% endcall %}
+{% if saved %}{{ alert('Данные компании сохранены', 'success') }}{% endif %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{% if credential_flash %}
+<div class="alert alert-warning credential-flash" data-credential-flash data-password="{{ credential_flash }}">
+  <strong>Новый пароль.</strong> Показывается один раз — сохраните его.
+  <div class="credential-flash-body">
+    <code class="credential-masked" data-credential-masked>••••••••</code>
+    <code class="credential-revealed" data-credential-revealed hidden></code>
+    <div class="credential-flash-actions">
+      <button type="button" class="btn" data-credential-show>Показать</button>
+      <button type="button" class="btn" data-credential-hide hidden>Скрыть</button>
+      <span data-credential-copy-wrap hidden>{{ copy_btn(credential_flash) }}</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% set readonly = company.status == 'rejected' %}
+{% set credentials_editable = company.status in ['active', 'pending'] %}
+{% set initials = (company.name[:2] if company.name else 'КЛ').upper() %}
+<div class="profile-grid">
+  <section class="panel profile-main">
+    <div class="profile-cover">
+      <div class="profile-avatar">{{ initials }}</div>
+      <div>
+        <strong>{{ company.name }}</strong>
+        <span>{{ company.legal_name or company.contact_person or 'Клиент B2B Commerce' }}</span>
+      </div>
+    </div>
+    <div class="profile-section">
+      <div class="section-title">
+        <div>
+          <strong>Данные компании</strong>
+          <span>Контактная информация и адрес доставки</span>
+        </div>
+      </div>
+      <form method="post" hx-boost="false" action="/profile" class="profile-fields">
+        {{ csrf_input() }}
+        <label class="field-label">Название<input id="name" name="name" value="{{ company.name }}" required {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Юр. название<input id="legal_name" name="legal_name" value="{{ company.legal_name or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">ИНН<input id="inn" name="inn" value="{{ company.inn or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">КПП<input id="kpp" name="kpp" value="{{ company.kpp or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Email<input id="contact_email" name="contact_email" type="email" value="{{ company.contact_email or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Телефон<input id="contact_phone" name="contact_phone" value="{{ company.contact_phone or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Контактное лицо<input id="contact_person" name="contact_person" value="{{ company.contact_person or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Юридический адрес<input id="legal_address" name="legal_address" value="{{ company.legal_address or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Адрес доставки<input id="delivery_address" name="delivery_address" value="{{ company.delivery_address or '' }}" {% if readonly %}disabled{% endif %}></label>
+        <label class="field-label">Контакт получателя<input id="delivery_contact" name="delivery_contact" value="{{ company.delivery_contact or '' }}" {% if readonly %}disabled{% endif %}></label>
+        {% if not readonly %}
+        <div class="form-actions profile-form-actions">
+          <button class="btn btn-primary" type="submit">Сохранить</button>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </section>
+  <aside class="profile-aside">
+    <section class="panel profile-status">
+      <div class="panel-head">
+        <div>
+          <strong>Статус клиента</strong>
+          {% if company.created_at %}<span>с {{ company.created_at | local_datetime }}</span>{% endif %}
+        </div>
+        {{ company_status_badge(company.status) }}
+      </div>
+      {% if metrics %}
+      <div class="profile-metrics">
+        <div><strong>{{ metrics.invoice_count }}</strong><span>счетов</span></div>
+        <div><strong>{{ metrics.paid_total | money }}</strong><span>оплачено</span></div>
+      </div>
+      {% endif %}
+    </section>
+    <section class="panel security-card">
+      <div class="panel-head">
+        <div>
+          <strong>Учётная запись</strong>
+        </div>
+      </div>
+      {% if company.account %}
+      <div class="security-row">
+        <div>
+          <strong>Логин</strong>
+          <span><code>{{ company.account.login }}</code></span>
+        </div>
+      </div>
+      <div class="security-row">
+        <div>
+          <strong>Пароль</strong>
+          <span>{% if company.account.must_change_password %}требуется смена{% else %}можно изменить{% endif %}</span>
+        </div>
+        {% if credentials_editable %}
+        <button type="button" class="link-button" data-password-modal-open>Изменить</button>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="text-secondary" style="padding:16px 20px;">Учётка не найдена.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% if credentials_editable and company.account %}
+<dialog id="password-change-modal" class="admin-modal password-change-modal"{% if company.account.must_change_password %} data-auto-open="1"{% endif %}>
+  <div class="admin-modal-head">
+    <div>
+      <strong>Новый пароль</strong>
+      <span class="admin-modal-sub">Минимум 8 символов</span>
+    </div>
+    <button type="button" class="admin-modal-close" data-password-modal-close aria-label="Закрыть">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+  <form method="post" hx-boost="false" action="/change-password" class="password-change-form">
+    {{ csrf_input() }}
+    <div class="password-change-modal__body">
+      <label class="field-label">
+        Новый пароль
+        <input name="new_password" type="password" required minlength="8" autocomplete="new-password">
+      </label>
+      <div class="form-actions password-change-modal__actions">
+        <button type="button" class="btn btn-ghost" data-password-modal-close>Отмена</button>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+{% endif %}
+{% endblock %}

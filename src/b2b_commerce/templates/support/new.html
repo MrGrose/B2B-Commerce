@@ -1,0 +1,23 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import page_head, back_link, alert %}
+{% block title %}Новый тикет{% endblock %}
+{% block content %}
+{{ back_link('/support', 'К списку') }}
+{% call page_head('', 'Новый тикет') %}{% endcall %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<form method="post" hx-boost="false" action="/support" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="field">
+    <label for="subject">Тема</label>
+    <input class="form-control" id="subject" name="subject" value="{{ form.subject or '' }}" required>
+  </div>
+  <div class="field">
+    <label for="body">Сообщение</label>
+    <textarea class="form-control" id="body" name="body" rows="5" required>{{ form.body or '' }}</textarea>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Отправить</button>
+    <a class="btn btn-link" href="/support">Отмена</a>
+  </div>
+</form>
+{% endblock %}

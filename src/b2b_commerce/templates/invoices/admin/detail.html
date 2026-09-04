@@ -1,0 +1,75 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, invoice_status_badge, invoice_summary_status_badge, invoice_preview_button, invoice_preview_modal %}
+{% block title %}Счёт {{ invoice.number }}
+{% endblock %}
+{% block content %}
+<div class="invoice-detail">
+{{ back_link('/admin/invoices', 'К списку счетов') }}
+<div class="page-head invoice-head">
+  <div>
+    <div class="eyebrow">СЧЁТ</div>
+    <div class="product-title-line">
+      <h1>№ {{ invoice.number }}</h1>
+      {{ invoice_status_badge(invoice.status) }}
+    </div>
+    <p>{{ invoice.company_name }}</p>
+  </div>
+  <div class="head-actions">
+    {{ invoice_preview_button(request.url.path ~ '/preview.pdf') }}
+    <a class="btn" href="{{ request.url.path }}/download.pdf" hx-boost="false"><i data-lucide="file-text"></i> Скачать PDF</a>
+  </div>
+</div>
+<div class="invoice-layout">
+  <section class="panel invoice-items">
+    <div class="panel-head">
+      <div>
+        <strong>Позиции счёта</strong>
+        <span>{{ invoice.items|length | plural_count('позиция', 'позиции', 'позиций') }}</span>
+      </div>
+    </div>
+    {% set form_action = '/admin/invoices/' ~ invoice.id ~ '/items' %}
+    {% include "invoices/_items_edit_slot.html" %}
+  </section>
+  <aside class="invoice-aside">
+    <section class="panel invoice-summary">
+      <div class="panel-head">
+        <strong>Детали счёта</strong>
+        {{ invoice_summary_status_badge(invoice.status) }}
+      </div>
+      <div class="invoice-meta">
+        <span>Компания<strong>{{ invoice.company_name }}</strong></span>
+        <span>Создан<strong>{{ invoice.created_at | local_datetime }}</strong></span>
+        <span>Оплатить до<strong>{{ invoice.expires_at | local_datetime }}</strong></span>
+        <span>Сумма<strong id="invoice-summary-total">{{ invoice.total | money }}</strong></span>
+        {% if invoice.paid_at %}<span>Оплачен<strong>{{ invoice.paid_at | local_datetime }}</strong></span>{% endif %}
+        {% if invoice.shipped_at %}<span>Отгружен<strong>{{ invoice.shipped_at | local_datetime }}</strong></span>{% endif %}
+        {% if invoice.notes %}
+        <span>Комментарий клиента<strong>{{ invoice.notes }}</strong></span>
+        {% endif %}
+      </div>
+    </section>
+    {% if invoice.status in ('awaiting_payment', 'paid') %}
+    <section class="panel invoice-actions">
+      <div class="panel-head"><strong>Действия</strong></div>
+      {% if invoice.status == 'awaiting_payment' %}
+      <form method="post" hx-boost="false" action="/admin/invoices/{{ invoice.id }}/confirm-payment">
+        {{ csrf_input() }}
+        <button type="submit" class="btn btn-primary btn-block"><i data-lucide="check"></i> Подтвердить оплату</button>
+      </form>
+      <form method="post" hx-boost="false" action="/admin/invoices/{{ invoice.id }}/cancel">
+        {{ csrf_input() }}
+        <button type="submit" class="btn btn-outline-danger btn-block"><i data-lucide="x"></i> Отменить счёт</button>
+      </form>
+      {% elif invoice.status == 'paid' %}
+      <form method="post" hx-boost="false" action="/admin/invoices/{{ invoice.id }}/ship">
+        {{ csrf_input() }}
+        <button type="submit" class="btn btn-primary btn-block"><i data-lucide="truck"></i> Отгрузить</button>
+      </form>
+      {% endif %}
+    </section>
+    {% endif %}
+  </aside>
+</div>
+</div>
+{{ invoice_preview_modal() }}
+{% endblock %}

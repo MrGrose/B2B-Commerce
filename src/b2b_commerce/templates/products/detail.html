@@ -1,0 +1,213 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import product_status_hint, back_link, product_visual, alert, product_status_badge, product_status_options %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+{{ back_link('/admin/products', 'К списку товаров') }}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{% if success %}{{ alert(success, 'success') }}{% endif %}
+<div class="product-detail-head">
+  <div>
+    <div class="eyebrow">ТОВАР · ДОБАВЛЕН {{ product.created_at | local_datetime(true) }}</div>
+    <div class="product-title-line">
+      <h1>{{ product.name }}</h1>
+      {{ product_status_badge(product.status) }}
+    </div>
+  </div>
+  <div class="head-actions">
+    {% if not product.deleted_at %}
+    <form
+      hx-boost="false"
+      method="post"
+      action="/admin/products/{{ product.id }}/delete"
+      onsubmit="return confirm('Удалить товар? Он скроется из списка. История счетов и движений сохранится.')"
+    >
+      <button type="submit" class="btn btn-danger"><i data-lucide="x"></i> Удалить</button>
+    </form>
+    {% endif %}
+    <button type="submit" class="btn btn-primary" form="product-params-form"><i data-lucide="check"></i> Сохранить</button>
+  </div>
+</div>
+<div class="product-detail-grid">
+  <aside class="product-showcase">
+    <section class="panel gallery-panel">
+      {% if product.images %}
+      <div data-product-gallery>
+        <div class="gallery-main">
+          {% if product.images|length > 1 %}
+          <button type="button" class="gallery-nav gallery-prev" aria-label="Предыдущее фото"><i data-lucide="chevron-left"></i></button>
+          {% endif %}
+          <img
+            src="/media/{{ product.images[0].storage_key }}"
+            alt="{{ product.name }}"
+            class="gallery-main-image"
+            role="button"
+            tabindex="0"
+            data-gallery-lightbox-trigger
+            aria-label="Открыть фото в полном размере"
+          >
+          {% if product.images|length > 1 %}
+          <button type="button" class="gallery-nav gallery-next" aria-label="Следующее фото"><i data-lucide="chevron-right"></i></button>
+          {% endif %}
+          <span class="gallery-counter">1 / {{ product.images|length }}</span>
+        </div>
+        {% if product.images|length > 1 %}
+        <div class="gallery-thumbs">
+          {% for image in product.images %}
+          <button type="button" class="gallery-thumb{% if loop.first %} active{% endif %}" data-src="/media/{{ image.storage_key }}" aria-label="Фото {{ loop.index }}">
+            <img src="/media/{{ image.storage_key }}" alt="">
+          </button>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      {{ product_visual(product.id | product_tone, large=true) }}
+      {% endif %}
+      <div class="gallery-empty"><i data-lucide="package"></i> Фото · JPG, PNG или WEBP. Можно несколько сразу.</div>
+      <form method="post" hx-boost="false" action="/admin/products/{{ product.id }}/images" enctype="multipart/form-data" class="gallery-upload-form">
+        {{ csrf_input() }}
+        <label class="field-label" for="images">Файлы
+          <input class="form-control" id="images" type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple required>
+        </label>
+        <button type="submit" class="btn gallery-upload-btn"><i data-lucide="plus"></i> Загрузить фото</button>
+      </form>
+    </section>
+  </aside>
+  <div class="product-workspace">
+    <section class="panel detail-panel">
+      <div class="panel-head">
+        <div>
+          <strong>Параметры товара</strong>
+          <span>Измените основные данные каталога</span>
+        </div>
+        <i data-lucide="settings"></i>
+      </div>
+      <form id="product-params-form" method="post" hx-boost="false" action="/admin/products/{{ product.id }}" class="detail-form">
+        {{ csrf_input() }}
+        <label class="field-label" for="name">Название
+          <input class="form-control" id="name" name="name" value="{{ product.name }}" required>
+        </label>
+        <div class="detail-three">
+          <label class="field-label" for="brand_id">Бренд
+            <select class="form-control" id="brand_id" name="brand_id">
+              <option value="">—</option>
+              {% for brand in brands %}
+              <option value="{{ brand.id }}" {% if product.brand_id == brand.id %}selected{% endif %}>{{ brand.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field-label" for="category_id">Категория
+            <select class="form-control" id="category_id" name="category_id">
+              <option value="">—</option>
+              {% for category in categories %}
+              <option value="{{ category.id }}" {% if product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field-label" for="model_year">Год модели
+            <input class="form-control" id="model_year" name="model_year" value="{{ product.model_year or '' }}">
+          </label>
+        </div>
+        <div class="detail-three">
+          <label class="field-label" for="cost_price">Себестоимость
+            <input class="form-control" id="cost_price" name="cost_price" value="{{ product.cost_price or '' }}" placeholder="Не указана">
+          </label>
+          <label class="field-label sale-field" for="sale_price">Цена продажи
+            <input class="form-control" id="sale_price" name="sale_price" value="{{ product.sale_price }}" required>
+          </label>
+          <div class="field-label">Маржа
+            <div class="margin-chip">
+              {% if product.cost_price is not none and product.sale_price %}
+              <strong>{{ (product.sale_price - product.cost_price) | money }}{% if product.margin_percent is not none %} · {{ product.margin_percent }}%{% endif %}</strong>
+              {% else %}
+              <strong>—</strong>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <label class="field-label" for="status">Статус
+          <select class="form-control" id="status" name="status">
+            {{ product_status_options(product.status) }}
+          </select>
+          {{ product_status_hint() }}
+        </label>
+        <label class="field-label" for="description">Описание
+          <textarea class="form-control" id="description" name="description" rows="4">{{ product.description or '' }}</textarea>
+        </label>
+      </form>
+    </section>
+    <section class="panel inventory-panel">
+      <div class="panel-head">
+        <div>
+          <strong>Остаток</strong>
+          <span>{% if warehouse %}Склад {{ warehouse.name }}{% else %}Склад{% endif %}</span>
+        </div>
+        <i data-lucide="box"></i>
+      </div>
+      <div class="inventory-stats">
+        <div>
+          <span>Остаток</span>
+          <strong>{{ on_hand }} <small>шт.</small></strong>
+        </div>
+        <div>
+          <span>Резерв</span>
+          <strong>{{ reserved }} <small>шт.</small></strong>
+          {% if reserved > 0 %}
+          <a
+            href="#"
+            class="link-button stock-reserve-link"
+            role="button"
+            title="Показать счета с резервом"
+            data-product-name="{{ product.name }}"
+            data-reservations-url="/admin/products/{{ product.id }}/reservations"
+          >Открыть счета</a>
+          {% endif %}
+        </div>
+        <div{% if availability < 10 %} class="available"{% endif %}>
+          <span>Доступно</span>
+          <strong>{{ availability }} <small>шт.</small></strong>
+        </div>
+      </div>
+      <form method="post" hx-boost="false" action="/admin/products/{{ product.id }}/inventory/correct" class="correction-row">
+        {{ csrf_input() }}
+        <label class="field-label" for="quantity">Целевой остаток
+          <input class="form-control" id="quantity" name="quantity" type="number" min="0" value="{{ on_hand }}" required>
+        </label>
+        <label class="field-label correction-reason" for="reason">Причина
+          <input class="form-control" id="reason" name="reason" required placeholder="Инвентаризация, приход…">
+        </label>
+        <button type="submit" class="btn btn-primary"><i data-lucide="check"></i> Корректировать</button>
+      </form>
+    </section>
+    <section class="panel price-history">
+      <div class="panel-head">
+        <div>
+          <strong>История цен</strong>
+          <span>Свежие изменения сверху</span>
+        </div>
+        <i data-lucide="file-text"></i>
+      </div>
+      <div class="table-wrap">
+        {% if not product.price_history %}
+        <p class="text-muted" style="padding:20px;margin:0;">Записей нет.</p>
+        {% else %}
+        <table>
+          <thead>
+            <tr><th>Дата</th><th>Себестоимость</th><th>Цена продажи</th></tr>
+          </thead>
+          <tbody>
+            {% for row in product.price_history|reverse %}
+            <tr>
+              <td>{{ row.created_at | local_datetime }}</td>
+              <td>{{ row.cost_price | money }}</td>
+              <td><strong>{{ row.sale_price | money }}</strong></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

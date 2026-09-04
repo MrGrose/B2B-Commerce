@@ -1,0 +1,112 @@
+{
+  "products": [
+    {
+      "name": "Bullpadel Vertex 04",
+      "brand": "Bullpadel",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2024,
+      "sale_price": "24990.00",
+      "cost_price": "18000.00",
+      "stock": 6,
+      "status": "active",
+      "description": "Демо-ракетка для локального каталога."
+    },
+    {
+      "name": "Head Evo Sanyo",
+      "brand": "Head",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2023,
+      "sale_price": "12990.00",
+      "cost_price": "9200.00",
+      "stock": 4,
+      "status": "active"
+    },
+    {
+      "name": "Wilson Bela Pro",
+      "brand": "Wilson",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2024,
+      "sale_price": "31990.00",
+      "cost_price": "24000.00",
+      "stock": 2,
+      "status": "active"
+    },
+    {
+      "name": "Bullpadel Premium Pro",
+      "brand": "Bullpadel",
+      "category": "Мячи",
+      "category_slug": "myachi",
+      "sale_price": "890.00",
+      "cost_price": "620.00",
+      "stock": 120,
+      "status": "active"
+    },
+    {
+      "name": "Head Pro S",
+      "brand": "Head",
+      "category": "Мячи",
+      "category_slug": "myachi",
+      "sale_price": "790.00",
+      "cost_price": "540.00",
+      "stock": 80,
+      "status": "active"
+    },
+    {
+      "name": "Bullpadel Hack Hybrid",
+      "brand": "Bullpadel",
+      "category": "Обувь",
+      "category_slug": "obuv",
+      "sale_price": "9990.00",
+      "cost_price": "7100.00",
+      "stock": 8,
+      "status": "active"
+    },
+    {
+      "name": "Nox AT10 Lux",
+      "brand": "Nox",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2022,
+      "sale_price": "18990.00",
+      "cost_price": "13500.00",
+      "stock": 0,
+      "status": "inactive"
+    },
+    {
+      "name": "Adidas Metalbone 3.2",
+      "brand": "Adidas",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2024,
+      "sale_price": "27990.00",
+      "cost_price": "20500.00",
+      "stock": 3,
+      "status": "active"
+    },
+    {
+      "name": "Siux Electra ST2",
+      "brand": "Siux",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2023,
+      "sale_price": "15990.00",
+      "cost_price": "11200.00",
+      "stock": 5,
+      "status": "active"
+    },
+    {
+      "name": "Bullpadel Vertex W",
+      "brand": "Bullpadel",
+      "category": "Ракетки",
+      "category_slug": "raketki",
+      "model_year": 2024,
+      "sale_price": "22990.00",
+      "cost_price": "16800.00",
+      "stock": 4,
+      "status": "active"
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import back_link, page_head, alert, empty_state %}
+{% block title %}Импорт прайса{% endblock %}
+{% block content %}
+{{ back_link('/admin/products', 'К списку товаров') }}
+{% call page_head('КАТАЛОГ', 'Импорт прайса') %}
+<a class="btn" href="/admin/products">Отмена</a>
+{% endcall %}
+
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{% if success %}{{ alert(success, 'success') }}{% endif %}
+
+{% if not preview and not applied %}
+<section class="panel">
+  <div class="panel-head"><strong>Шаг 1 — загрузка файла</strong></div>
+  <div style="padding:20px;">
+    <p class="text-muted mb-3">Загрузите Excel-прайс (.xlsx). Максимум 64 МБ.</p>
+    <form method="post" hx-boost="false" action="/admin/products/import" enctype="multipart/form-data" class="form-stack">
+      {{ csrf_input() }}
+      <input type="hidden" name="action" value="preview">
+      <div class="field">
+        <label for="file">Файл прайса</label>
+        <input class="form-control" id="file" type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Предпросмотр</button>
+    </form>
+  </div>
+</section>
+{% endif %}
+
+{% if preview %}
+<section class="panel">
+  <div class="panel-head"><strong>Шаг 2 — предпросмотр</strong></div>
+  <div style="padding:20px;">
+    <div class="stats-grid import-stats">
+      <div class="stat stat-lime">
+        <div class="stat-top"><span>Создать</span></div>
+        <strong>{{ preview.created }}</strong>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Обновить</span></div>
+        <strong>{{ preview.updated }}</strong>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Без изменений</span></div>
+        <strong>{{ preview.skipped }}</strong>
+      </div>
+      <div class="stat stat-warning">
+        <div class="stat-top"><span>Ошибки</span></div>
+        <strong>{{ preview.errors }}</strong>
+      </div>
+    </div>
+    {% if preview.warnings %}
+    <p class="text-muted mb-3">Предупреждений: {{ preview.warnings }}</p>
+    {% endif %}
+    <form method="post" hx-boost="false" action="/admin/products/import" class="import-confirm-form">
+      {{ csrf_input() }}
+      <input type="hidden" name="action" value="confirm">
+      <input type="hidden" name="confirm_token" value="{{ confirm_token }}">
+      <button type="submit" class="btn btn-primary">Применить импорт</button>
+      <a class="btn" href="/admin/products/import">Загрузить другой файл</a>
+    </form>
+  </div>
+</section>
+
+{% if preview.row_results %}
+<div class="table-wrap data-table-wrap" style="margin-top:18px;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Строка</th>
+        <th>Товар</th>
+        <th>Бренд</th>
+        <th>Действие</th>
+        <th>Детали</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in preview.row_results %}
+      <tr>
+        <td data-label="Строка">{{ row.source_row }}</td>
+        <td data-label="Товар">{{ row.name }}</td>
+        <td data-label="Бренд">{{ row.brand_name }}</td>
+        <td data-label="Действие">
+          {% if row.status == 'create' %}Создание
+          {% elif row.status == 'update' %}Обновление
+          {% elif row.status == 'skip' %}Без изменений
+          {% else %}Ошибка
+          {% endif %}
+        </td>
+        <td data-label="Детали">
+          {% if row.messages %}
+          {% for message in row.messages %}
+          <small class="table-sub">{{ message }}</small>
+          {% endfor %}
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+{{ empty_state('Строк для импорта нет', 'Файл не содержит валидных строк.', '', '') }}
+{% endif %}
+{% endif %}
+
+{% if applied %}
+<section class="panel">
+  <div class="panel-head"><strong>Импорт завершён</strong></div>
+  <div style="padding:20px;">
+    <div class="stats-grid import-stats">
+      <div class="stat stat-lime">
+        <div class="stat-top"><span>Создано</span></div>
+        <strong>{{ applied.created }}</strong>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Обновлено</span></div>
+        <strong>{{ applied.updated }}</strong>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Без изменений</span></div>
+        <strong>{{ applied.skipped }}</strong>
+      </div>
+      <div class="stat stat-warning">
+        <div class="stat-top"><span>Ошибки</span></div>
+        <strong>{{ applied.errors }}</strong>
+      </div>
+    </div>
+    <a class="btn btn-primary" href="/admin/products">К списку товаров</a>
+    <a class="btn" href="/admin/products/import">Новый импорт</a>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

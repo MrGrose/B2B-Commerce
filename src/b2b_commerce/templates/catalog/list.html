@@ -1,0 +1,68 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import page_head, product_visual, empty_state, alert, catalog_cart_controls, pagination, stock_availability_badge %}
+{% from "macros/filter_bar.html" import filter_bar %}
+{% block title %}Каталог{% endblock %}
+{% block content %}
+{% call page_head('ОПТОВЫЙ КАТАЛОГ', 'Товары для вашего клуба') %}{% endcall %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{{ filter_bar(
+  'catalog',
+  'catalog-filters',
+  '/catalog',
+  q=catalog_q,
+  category_id=catalog_category_id,
+  brand_id=catalog_brand_id,
+  model_year=catalog_model_year,
+  sort=catalog_sort,
+  brand_stats=brand_stats,
+  model_year_stats=model_year_stats,
+  category_stats=category_stats,
+  catalog_total_all=catalog_total_all,
+  reset_href=catalog_url(),
+  clear_url=catalog_url('', catalog_category_id, brand_id=catalog_brand_id, model_year=catalog_model_year, sort=catalog_sort),
+) }}
+{% if not products %}
+{% if catalog_q or catalog_category_id or catalog_brand_id or catalog_model_year or catalog_sort %}
+{{ empty_state('Ничего не найдено', 'Попробуйте другой запрос или сбросьте фильтры.', 'Сбросить', catalog_url()) }}
+{% else %}
+{{ empty_state('Каталог пуст', 'Товары пока не добавлены.', '', '') }}
+{% endif %}
+{% else %}
+<div class="catalog-grid">
+  {% for row in products %}
+  {% set tone = row.product.id | product_tone %}
+  {% set in_cart = cart_quantities.get(row.product.id, 0) %}
+  <div class="product-card">
+    <a class="product-card-media" href="/catalog/products/{{ row.product.id }}">
+      {% if row.product.images %}
+      {% set cover = row.product.images[0] %}
+      <img
+        src="/media/{{ cover.storage_key }}"
+        alt="{{ row.product.name }}"
+        class="product-visual catalog-product-image"
+        decoding="async"
+        loading="{% if loop.index <= 6 %}eager{% else %}lazy{% endif %}"
+      >
+      {% else %}
+      {{ product_visual(tone) }}
+      {% endif %}
+    </a>
+    <div class="product-body">
+      <div class="product-meta">
+        <span>{{ row.product.category.name if row.product.category else 'Товар' }}</span>
+        {{ stock_availability_badge(row.availability or 0) }}
+      </div>
+      <h3><a class="product-title-link" href="/catalog/products/{{ row.product.id }}">{{ row.product.name }}</a></h3>
+      <div class="product-foot">
+        <strong>{{ row.product.sale_price | money }}</strong>
+        {% if row.availability %}
+        {{ catalog_cart_controls(row.product.id, in_cart, row.availability, catalog_path) }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{{ pagination(page, total_pages, catalog_q, catalog_category_id, catalog_brand_id, catalog_model_year, catalog_sort) }}
+{% endif %}
+{% endblock %}

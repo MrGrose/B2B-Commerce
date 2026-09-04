@@ -1,0 +1,9 @@
+{% from "macros/ui.html" import alert %}
+<div id="invoice-items-slot">
+  {% if error %}{{ alert(error, 'danger') }}{% endif %}
+  {% if success %}{{ alert(success, 'success', hide_ms=2000) }}{% endif %}
+  {% include "invoices/_items_edit_block.html" %}
+</div>
+{% if sync_summary_total %}
+<strong id="invoice-summary-total" hx-swap-oob="innerHTML">{{ invoice.total | money }}</strong>
+{% endif %}

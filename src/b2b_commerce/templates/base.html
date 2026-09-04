@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}B2B Commerce{% endblock %}</title>
+  <link rel="preload" href="{{ url_for('static', path='fonts/dm-sans.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', path='fonts/syne.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', path='fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+  <link rel="preload" href="{{ url_for('static', path='lucide.min.js') }}" as="script">
+  <script src="{{ url_for('static', path='lucide.min.js') }}" defer></script>
+  <script src="{{ url_for('static', path='htmx.min.js') }}" defer></script>
+  <meta name="csrf-token" content="{{ request.state.csrf_token }}">
+</head>
+<body>
+  {% block body %}{% endblock %}
+    <script src="{{ url_for('static', path='app.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import logo, error_page %}
+{% block title %}Не найдено{% endblock %}
+{% block body %}
+<div class="standalone-page">
+  <div class="standalone-card">
+    {{ logo() }}
+    {% if request.state.layout_user_login %}
+      {% if request.state.layout_is_admin %}
+    {{ error_page('search-x', 'Страница не найдена', 'Проверьте адрес или вернитесь в панель.', 'Панель', '/admin') }}
+      {% else %}
+    {{ error_page('search-x', 'Страница не найдена', 'Проверьте адрес или вернитесь в каталог.', 'В каталог', '/catalog') }}
+      {% endif %}
+    {% else %}
+    {{ error_page('search-x', 'Страница не найдена', 'Проверьте адрес или войдите в систему.', 'На вход', '/login') }}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

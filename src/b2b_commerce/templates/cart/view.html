@@ -1,0 +1,74 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import page_head, product_visual, alert, empty_state %}
+{% block title %}Корзина{% endblock %}
+{% block content %}
+{% call page_head('ЗАКАЗ', 'Корзина') %}
+<a class="btn" href="/catalog"><i data-lucide="arrow-left"></i> Продолжить покупки</a>
+{% endcall %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+{% if success %}{{ alert(success, 'success') }}{% endif %}
+{% if not cart.items %}
+{{ empty_state('Корзина пуста', 'Добавьте товары из каталога, чтобы оформить заказ.', 'Перейти в каталог', '/catalog') }}
+{% else %}
+<div class="cart-layout">
+  <section class="panel">
+    <div class="panel-head">
+      <strong>Позиции заказа</strong>
+      <span>{{ cart.items|length }} {% if cart.items|length == 1 %}товар{% elif cart.items|length < 5 %}товара{% else %}товаров{% endif %}</span>
+    </div>
+    <div class="line-items">
+      {% for item in cart.items %}
+      <div class="line-item">
+        {{ product_visual(item.product_id | product_tone) }}
+        <div>
+          <strong>{{ item.name }}</strong>
+        </div>
+        <div class="qty">
+          {% if item.quantity > 1 %}
+          <form method="post" hx-boost="false" action="/cart/items">
+            {{ csrf_input() }}
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <input type="hidden" name="quantity" value="{{ item.quantity - 1 }}">
+            <button type="submit" aria-label="Уменьшить">−</button>
+          </form>
+          {% else %}
+          <form method="post" hx-boost="false" action="/cart/items/{{ item.product_id }}/remove">
+            {{ csrf_input() }}
+            <button type="submit" aria-label="Уменьшить">−</button>
+          </form>
+          {% endif %}
+          <span>{{ item.quantity }}</span>
+          <form method="post" hx-boost="false" action="/cart/items">
+            {{ csrf_input() }}
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <input type="hidden" name="quantity" value="{{ item.quantity + 1 }}">
+            <button type="submit" aria-label="Увеличить" {% if item.quantity >= item.availability %}disabled{% endif %}>+</button>
+          </form>
+        </div>
+        <strong class="line-price">{{ item.line_total | money }}</strong>
+        <form method="post" hx-boost="false" action="/cart/items/{{ item.product_id }}/remove">
+          {{ csrf_input() }}
+          <button type="submit" class="remove" aria-label="Удалить"><i data-lucide="x"></i></button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    <form method="post" hx-boost="false" action="/invoices" id="cart-invoice-form" data-checkout-form>
+      {{ csrf_input() }}
+      <label class="field-label">Комментарий к заказу
+        <textarea name="notes" placeholder="Например: отгрузить после 15 числа..."></textarea>
+      </label>
+    </form>
+  </section>
+  <aside class="summary">
+    <div class="summary-title">Итого</div>
+    <div class="summary-row"><span>Товары</span><strong>{{ cart.subtotal | money }}</strong></div>
+    <div class="summary-row"><span>Доставка</span><span>Рассчитаем отдельно</span></div>
+    <hr>
+    <div class="summary-total"><span>К оплате</span><strong>{{ cart.subtotal | money }}</strong></div>
+    <button class="btn btn-primary w-100" type="submit" form="cart-invoice-form" data-checkout-submit>Создать счёт <i data-lucide="arrow-right"></i></button>
+    <small>Счёт будет доступен для скачивания и оплаты банковским переводом.</small>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

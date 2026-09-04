@@ -1,0 +1,93 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, alert, empty_state, pagination %}
+{% block title %}Юрлица поставщика{% endblock %}
+{% block content %}
+{% call page_head('B2B', 'Юрлица поставщика') %}
+<a class="btn" href="/admin/companies">К компаниям</a>
+{% endcall %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+
+<div class="table-wrap data-table-wrap" style="margin-bottom:24px;">
+  {% if entities %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Наименование</th>
+        <th>ИНН</th>
+        <th>КПП</th>
+        <th>Банк</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entity in entities %}
+      <tr>
+        <td data-label="Наименование">{{ entity.legal_name or entity.name }}</td>
+        <td data-label="ИНН">{{ entity.inn }}</td>
+        <td data-label="КПП">{{ entity.kpp or "—" }}</td>
+        <td data-label="Банк">{{ entity.bank_name or "—" }}</td>
+        <td data-label="">
+          <a class="btn btn-sm" href="/admin/billing-entities/{{ entity.id }}/edit">Изменить</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  {{ empty_state('Юрлиц пока нет', 'Seed создаёт запись из SUPPLIER_* или добавьте вручную.', '', '', icon='landmark') }}
+  {% endif %}
+</div>
+{% if total_pages is defined and total_pages > 1 %}
+{{ pagination(page, total_pages, href='billing_entities') }}
+{% endif %}
+
+<h2>Новое юрлицо</h2>
+<form method="post" hx-boost="false" action="/admin/billing-entities" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="form-row">
+    <div class="field">
+      <label for="name">Наименование</label>
+      <input class="form-control" id="name" name="name" value="{{ form.name or '' }}" required>
+    </div>
+    <div class="field">
+      <label for="legal_name">Юридическое название</label>
+      <input class="form-control" id="legal_name" name="legal_name" value="{{ form.legal_name or '' }}" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="inn">ИНН</label>
+      <input class="form-control" id="inn" name="inn" value="{{ form.inn or '' }}" required>
+    </div>
+    <div class="field">
+      <label for="kpp">КПП</label>
+      <input class="form-control" id="kpp" name="kpp" value="{{ form.kpp or '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label for="legal_address">Юридический адрес</label>
+    <input class="form-control" id="legal_address" name="legal_address" value="{{ form.legal_address or '' }}">
+  </div>
+  <div class="field">
+    <label for="bank_name">Банк</label>
+    <input class="form-control" id="bank_name" name="bank_name" value="{{ form.bank_name or '' }}">
+  </div>
+  <div class="form-row">
+    <div class="field">
+      <label for="bik">БИК</label>
+      <input class="form-control" id="bik" name="bik" value="{{ form.bik or '' }}">
+    </div>
+    <div class="field">
+      <label for="bank_account">Расчётный счёт</label>
+      <input class="form-control" id="bank_account" name="bank_account" value="{{ form.bank_account or '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label for="corr_account">Корреспондентский счёт</label>
+    <input class="form-control" id="corr_account" name="corr_account" value="{{ form.corr_account or '' }}">
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Добавить</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,19 @@
+<details class="rate-history">
+  <summary
+    class="rate-history__trigger btn btn-sm btn-icon btn-ghost"
+    title="История курса"
+    aria-label="История курса USD/RUB"
+  >
+    <i data-lucide="search"></i>
+  </summary>
+  <div class="rate-history__panel" role="dialog" aria-label="История изменений курса USD/RUB">
+    <p class="rate-history__title">Курс USD/RUB (7 дней)</p>
+    {% if rows %}
+    <ul class="rate-history__list" id="rapira-rate-history-rows">
+      {% include "rapira/partials/rate_history_rows.html" %}
+    </ul>
+    {% else %}
+    <p class="rate-history__empty muted">История пуста</p>
+    {% endif %}
+  </div>
+</details>

@@ -1,0 +1,40 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, empty_state %}
+{% block title %}USD/RUB{% endblock %}
+{% block content %}
+{% call page_head('КУРС USD/RUB', 'Rapira') %}
+<form method="post" action="/admin/rapira/sync" class="rapira-sync-form" hx-boost="false">
+  {{ csrf_input() }}
+  <button type="submit" class="btn btn-primary">
+    <i data-lucide="refresh-cw"></i>
+    Обновить курс
+  </button>
+</form>
+{% endcall %}
+
+{% if error %}
+<div class="alert alert-error" role="alert">{{ error }}</div>
+{% elif synced %}
+<div class="alert alert-success" role="alert">USD/RUB обновлён: {{ synced | rate }}.</div>
+{% elif unchanged %}
+<div class="alert alert-success" role="alert">Курс без изменений{% if stats.latest_rate %}: {{ stats.latest_rate | rate }}{% endif %}.</div>
+{% endif %}
+
+<div class="stats-grid rapira-stats-grid">
+  <div class="stat stat-lime">
+    <div class="stat-top">
+      <span>USD/RUB</span>
+      <span class="stat-icon"><i data-lucide="trending-up"></i></span>
+    </div>
+    <div class="stat-value-row">
+      <strong>{{ stats.latest_rate and (stats.latest_rate | rate) or '—' }}</strong>
+      {% include "rapira/partials/_rate_history_popover.html" %}
+    </div>
+    <small>Текущий курс</small>
+  </div>
+</div>
+
+{% if not stats.latest_rate %}
+{{ empty_state('Курс не загружен', 'Нажмите «Обновить курс» или дождитесь cron.', '', '', icon='trending-up') }}
+{% endif %}
+{% endblock %}

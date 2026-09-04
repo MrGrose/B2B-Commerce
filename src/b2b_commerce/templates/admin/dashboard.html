@@ -1,0 +1,62 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import page_head, stat_card, invoice_status_badge, empty_state, product_visual %}
+{% block title %}Дашборд{% endblock %}
+{% block content %}
+{% call page_head('ДАШБОРД', 'Добрый день, ' ~ request.state.layout_user_login) %}{% endcall %}
+<div class="stats-grid">
+  {{ stat_card('Открытые счета', dashboard.awaiting_count, 'ожидают оплаты', 'file-text', 'lime') }}
+  {{ stat_card('К оплате', dashboard.awaiting_total | money, dashboard.awaiting_count ~ ' счетов', 'credit-card', 'warning') }}
+  {{ stat_card('Низкий остаток', dashboard.low_stock_count | plural_count('позиция', 'позиции', 'позиций'), 'Требуют внимания', 'alert-circle', 'warning') }}
+  {{ stat_card('Открытые тикеты', dashboard.open_tickets, 'в поддержке', 'headphones') }}
+</div>
+<div class="dashboard-grid">
+  <section class="panel">
+    <div class="panel-head">
+      <div><strong>Последние счета</strong><span>Недавние операции</span></div>
+      <a class="link-button" href="/admin/invoices">Все счета <i data-lucide="arrow-right"></i></a>
+    </div>
+    {% if not dashboard.recent_invoices %}
+    {{ empty_state('Счетов ещё нет', 'Счета появятся после заказов клиентов.', '', '', compact=true) }}
+    {% else %}
+    <table class="compact">
+      <tbody>
+        {% for invoice in dashboard.recent_invoices %}
+        <tr>
+          <td>
+            <a class="link" href="/admin/invoices/{{ invoice.id }}"><strong>№ {{ invoice.number }}</strong></a>
+            <small>{{ invoice.company_name }}</small>
+          </td>
+          <td><strong>{{ invoice.total | money }}</strong></td>
+          <td>{{ invoice_status_badge(invoice.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </section>
+  <section class="panel low-stock">
+    <div class="panel-head">
+      <div><strong>Низкий остаток</strong><span>Порог: менее {{ low_stock_threshold }} шт.</span></div>
+      <a class="link-button" href="/admin/products">Товары <i data-lucide="arrow-right"></i></a>
+    </div>
+    {% if not dashboard.low_stock %}
+    {{ empty_state('Всё в норме', 'Нет товаров с критическим остатком.', '', '', compact=true) }}
+    {% else %}
+    {% for row in dashboard.low_stock %}
+    <div class="stock-row">
+      {% if row.image_storage_key %}
+      {{ product_visual(row.product_id | product_tone, image_src='/media/' ~ row.image_storage_key, alt=row.name) }}
+      {% else %}
+      {{ product_visual(row.product_id | product_tone, alt=row.name) }}
+      {% endif %}
+      <div>
+        <strong>{{ row.name }}</strong>
+        {% if row.brand_name %}<small>{{ row.brand_name }}</small>{% endif %}
+      </div>
+      <span class="{% if row.available < low_stock_threshold %}stock-low{% endif %}">{{ row.available }} шт.</span>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

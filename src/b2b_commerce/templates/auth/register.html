@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import auth_shell, alert %}
+{% block title %}Регистрация{% endblock %}
+{% block body %}
+{% call auth_shell('Регистрация', 'После регистрации заявка уйдёт администратору. Каталог откроется после одобрения.', wide=true) %}
+  {% if error %}{{ alert(error, 'danger') }}{% endif %}
+  <form method="post" hx-boost="false" action="/register" class="form-stack auth-form" data-auth-form>
+    {{ csrf_input() }}
+    <div class="field">
+      <label for="login">Логин</label>
+      <input class="form-control" id="login" name="login" value="{{ form.login or '' }}" required minlength="3" maxlength="64" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Пароль</label>
+      <input class="form-control" id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
+      <span class="field-hint">Не короче 8 символов</span>
+    </div>
+    <div class="field">
+      <label for="name">Название компании</label>
+      <input class="form-control" id="name" name="name" value="{{ form.name or '' }}" required>
+    </div>
+    <div class="field">
+      <label for="legal_name">Юридическое название</label>
+      <input class="form-control" id="legal_name" name="legal_name" value="{{ form.legal_name or '' }}" required>
+    </div>
+    <div class="field">
+      <label for="inn">ИНН</label>
+      <input class="form-control" id="inn" name="inn" value="{{ form.inn or '' }}" required inputmode="numeric">
+    </div>
+    <div class="field">
+      <label for="contact_email">Email</label>
+      <input class="form-control" id="contact_email" name="contact_email" type="email" value="{{ form.contact_email or '' }}" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="contact_phone">Телефон</label>
+      <input class="form-control" id="contact_phone" name="contact_phone" value="{{ form.contact_phone or '' }}" required autocomplete="tel">
+    </div>
+    <div class="field">
+      <label for="legal_address">Юридический адрес <span class="field-optional">(необязательно)</span></label>
+      <input class="form-control" id="legal_address" name="legal_address" value="{{ form.legal_address or '' }}">
+    </div>
+    <div class="field">
+      <label for="contact_person">Контактное лицо <span class="field-optional">(необязательно)</span></label>
+      <input class="form-control" id="contact_person" name="contact_person" value="{{ form.contact_person or '' }}">
+    </div>
+    <div class="field">
+      <label for="kpp">КПП <span class="field-optional">(необязательно)</span></label>
+      <input class="form-control" id="kpp" name="kpp" value="{{ form.kpp or '' }}">
+    </div>
+    <div class="field">
+      <label for="delivery_address">Адрес доставки <span class="field-optional">(необязательно)</span></label>
+      <input class="form-control" id="delivery_address" name="delivery_address" value="{{ form.delivery_address or '' }}">
+    </div>
+    <div class="field">
+      <label for="delivery_contact">Контакт получателя <span class="field-optional">(необязательно)</span></label>
+      <input class="form-control" id="delivery_contact" name="delivery_contact" value="{{ form.delivery_contact or '' }}">
+    </div>
+    <button class="btn btn-primary w-100" type="submit">Отправить заявку</button>
+  </form>
+  <p class="auth-footer text-secondary">
+    Уже есть доступ? <a href="/login">Войти</a>
+  </p>
+{% endcall %}
+{% endblock %}

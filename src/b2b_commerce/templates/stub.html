@@ -1,0 +1,7 @@
+{% extends layout %}
+{% from "macros/ui.html" import page_head, empty_state %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+{% call page_head('', title) %}{% endcall %}
+{{ empty_state('Раздел в разработке', 'Этот раздел появится в следующем обновлении.', '', '') }}
+{% endblock %}

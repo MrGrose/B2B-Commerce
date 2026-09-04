@@ -1,0 +1,21 @@
+{% for row in rows %}
+<li class="rate-history__item">
+  <div class="rate-history__main">
+    <span class="rate-history__date">{{ row.fetched_at | local_datetime }}</span>
+    <span class="rate-history__meta muted">Rapira</span>
+  </div>
+  <span class="rate-history__value">{{ row.rate | rate }}</span>
+</li>
+{% endfor %}
+{% if has_more and last_id %}
+<li class="rate-history__more">
+  <button
+    type="button"
+    class="btn btn-sm"
+    hx-get="/admin/rapira/history?before_id={{ last_id }}"
+    hx-target="#rapira-rate-history-rows"
+    hx-swap="beforeend"
+    hx-on::after-request="this.closest('li').remove()"
+  >Загрузить ещё</button>
+</li>
+{% endif %}

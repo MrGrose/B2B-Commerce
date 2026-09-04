@@ -1,0 +1,67 @@
+{% from "macros/ui.html" import invoice_items_list, invoice_total_row %}
+{% if invoice.status == 'awaiting_payment' %}
+<form
+  method="post"
+  action="{{ form_action }}"
+  class="invoice-items-edit-form"
+  hx-post="{{ form_action }}"
+  hx-target="#invoice-items-slot"
+  hx-select="#invoice-items-slot"
+  hx-swap="outerHTML settle:0"
+>
+  {{ csrf_input() }}
+  <div class="line-items invoice-line-items">
+    {% for item in invoice.items %}
+    <div class="line-item invoice-line-item">
+      <div class="invoice-line-main">
+        <strong>{{ item.product_name }}</strong>
+        <span class="invoice-line-meta">{{ item.unit_price | money }} за шт.</span>
+      </div>
+      <div class="field invoice-line-qty">
+        <label for="qty-{{ item.id }}">Кол-во</label>
+        <div class="invoice-qty-stepper" role="group" aria-label="Количество">
+          <button type="button" class="invoice-qty-step" data-step="-1" aria-label="Уменьшить">−</button>
+          <input
+            class="form-control invoice-qty-input"
+            id="qty-{{ item.id }}"
+            name="qty-{{ item.id }}"
+            type="number"
+            min="0"
+            value="{{ item.quantity }}"
+            required
+            inputmode="numeric"
+          >
+          <button type="button" class="invoice-qty-step" data-step="1" aria-label="Увеличить">+</button>
+        </div>
+      </div>
+      <strong class="invoice-line-total">{{ item.line_total | money }}</strong>
+      <button
+        type="button"
+        class="invoice-line-remove"
+        aria-label="Удалить позицию"
+        aria-controls="qty-{{ item.id }}"
+      >
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {{ invoice_total_row(invoice.total) }}
+  <div class="invoice-add-line">
+    <div class="field invoice-add-product">
+      <label for="add_product_id">Добавить товар</label>
+      <select class="form-control" id="add_product_id" name="add_product_id">
+        <option value="">Не выбран</option>
+        {% for product in addable_products %}
+        <option value="{{ product.id }}">{{ product.name }} — {{ product.available }} шт.</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn">Сохранить</button>
+    </div>
+  </div>
+</form>
+{% else %}
+{{ invoice_items_list(invoice.items, invoice.total) }}
+{% endif %}

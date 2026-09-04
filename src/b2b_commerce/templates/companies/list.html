@@ -1,0 +1,69 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import company_status_badge, pagination, empty_state %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">B2B</div>
+    <h1>Компании</h1>
+  </div>
+  <div class="form-actions">
+    <a class="btn" href="/admin/billing-entities">Юрлица поставщика</a>
+    <a class="btn btn-primary" href="/admin/companies/new"><i data-lucide="plus"></i> Новая компания</a>
+  </div>
+</div>
+
+<form method="get" action="/admin/companies" class="filter-line companies-search" id="companies-filters" style="margin-bottom:16px;" data-clear-url="{{ clear_href }}">
+  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+  <div class="search search--with-clear">
+    <i data-lucide="search"></i>
+    <input type="search" name="q" value="{{ q }}" placeholder="Поиск: название, ИНН, login, email" autocomplete="off">
+    {% if q %}
+    <a href="{{ clear_href }}" class="search__clear btn-icon" aria-label="Очистить поиск" hx-boost="false"><i data-lucide="x"></i></a>
+    {% endif %}
+  </div>
+</form>
+
+<div class="form-actions" style="margin-bottom:16px;">
+  <a class="btn {% if not status_filter %}btn-primary{% endif %}" href="/admin/companies{% if q %}?q={{ q|urlencode }}{% endif %}">Все</a>
+  <a class="btn {% if status_filter == 'pending' %}btn-primary{% endif %}" href="/admin/companies?status=pending{% if q %}&q={{ q|urlencode }}{% endif %}">На рассмотрении{% if pending_count and not status_filter %} ({{ pending_count }}){% endif %}</a>
+  <a class="btn {% if status_filter == 'active' %}btn-primary{% endif %}" href="/admin/companies?status=active{% if q %}&q={{ q|urlencode }}{% endif %}">Активные</a>
+  <a class="btn {% if status_filter == 'rejected' %}btn-primary{% endif %}" href="/admin/companies?status=rejected{% if q %}&q={{ q|urlencode }}{% endif %}">Отклонённые</a>
+  <a class="btn {% if status_filter == 'suspended' %}btn-primary{% endif %}" href="/admin/companies?status=suspended{% if q %}&q={{ q|urlencode }}{% endif %}">Приостановленные</a>
+</div>
+
+<div class="table-wrap data-table-wrap">
+  {% if companies %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Компания</th>
+        <th>ИНН</th>
+        <th>Login</th>
+        <th>Email</th>
+        <th>Телефон</th>
+        <th>Дата</th>
+        <th>Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for company in companies %}
+      <tr>
+        <td data-label="Компания"><a href="/admin/companies/{{ company.id }}">{{ company.name }}</a></td>
+        <td data-label="ИНН">{{ company.inn or "—" }}</td>
+        <td data-label="Login">{{ company.account.login if company.account else "—" }}</td>
+        <td data-label="Email">{{ company.contact_email or "—" }}</td>
+        <td data-label="Телефон">{{ company.contact_phone or "—" }}</td>
+        <td data-label="Дата">{{ company.created_at | local_datetime(true) }}</td>
+        <td data-label="Статус">{{ company_status_badge(company.status) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% elif q or status_filter %}
+  {{ empty_state('Ничего не найдено', 'Измените запрос или сбросьте фильтры.', 'Сбросить', clear_href, icon='search-x') }}
+  {% else %}
+  {{ empty_state('Компаний пока нет', 'Создайте первую компанию для B2B-доступа.', 'Новая компания', '/admin/companies/new', icon='building-2') }}
+  {% endif %}
+</div>
+{{ pagination(page, total_pages, q, '', '', '', '', status_filter, 'companies') }}
+{% endblock %}

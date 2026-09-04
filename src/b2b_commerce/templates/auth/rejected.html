@@ -1,0 +1,22 @@
+{% extends "layouts/customer.html" %}
+{% from "macros/ui.html" import alert %}
+{% block title %}Заявка отклонена{% endblock %}
+{% block content %}
+<section class="auth-status" aria-labelledby="auth-status-title">
+  <h1 id="auth-status-title">Заявка отклонена</h1>
+  <div class="message-stack">
+    {{ alert('Администратор отклонил заявку. Каталог, корзина и счета недоступны.', 'danger') }}
+    {% if company and company.rejection_reason %}
+    <p><strong>Причина:</strong> {{ company.rejection_reason }}</p>
+    {% endif %}
+    <p class="text-secondary">Профиль доступен только для просмотра.</p>
+  </div>
+  <div class="form-actions">
+    <a class="btn" href="/profile">Профиль</a>
+    <form method="post" action="/logout" class="inline-form">
+      {{ csrf_input() }}
+      <button class="btn btn-outline-danger" type="submit">Выйти</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

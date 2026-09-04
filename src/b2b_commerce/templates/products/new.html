@@ -1,0 +1,65 @@
+{% extends "layouts/admin.html" %}
+{% from "macros/ui.html" import product_status_hint, page_head, alert, product_status_options %}
+{% block title %}Новый товар{% endblock %}
+{% block content %}
+{% call page_head('', 'Новый товар') %}{% endcall %}
+{% if error %}{{ alert(error, 'danger') }}{% endif %}
+<form method="post" hx-boost="false" action="/admin/products" class="form-stack form-stack-wide">
+  {{ csrf_input() }}
+  <div class="form-row">
+    <div class="field">
+      <label for="name">Название</label>
+      <input class="form-control" id="name" name="name" value="{{ form.name or '' }}" required>
+    </div>
+  </div>
+  <div class="form-row form-row-3">
+    <div class="field">
+      <label for="brand_id">Бренд</label>
+      <select class="form-control" id="brand_id" name="brand_id">
+        <option value="">—</option>
+        {% for brand in brands %}
+        <option value="{{ brand.id }}" {% if form.brand_id == brand.id|string %}selected{% endif %}>{{ brand.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="category_id">Категория</label>
+      <select class="form-control" id="category_id" name="category_id">
+        <option value="">—</option>
+        {% for category in categories %}
+        <option value="{{ category.id }}" {% if form.category_id == category.id|string %}selected{% endif %}>{{ category.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="status">Статус</label>
+      <select class="form-control" id="status" name="status">
+        {{ product_status_options(form.status or 'inactive') }}
+      </select>
+      {{ product_status_hint() }}
+    </div>
+  </div>
+  <div class="form-row form-row-3">
+    <div class="field">
+      <label for="cost_price">Себестоимость</label>
+      <input class="form-control" id="cost_price" name="cost_price" value="{{ form.cost_price or '' }}" placeholder="Не указана">
+    </div>
+    <div class="field">
+      <label for="model_year">Год модели</label>
+      <input class="form-control" id="model_year" name="model_year" value="{{ form.model_year or '' }}">
+    </div>
+    <div class="field">
+      <label for="sale_price">Цена продажи</label>
+      <input class="form-control" id="sale_price" name="sale_price" value="{{ form.sale_price or '' }}" required>
+    </div>
+  </div>
+  <div class="field">
+    <label for="description">Описание</label>
+    <textarea class="form-control" id="description" name="description" rows="3">{{ form.description or '' }}</textarea>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Создать</button>
+    <a class="btn" href="/admin/products">Отмена</a>
+  </div>
+</form>
+{% endblock %}
