@@ -8,7 +8,7 @@ B2B-опт спортивной экипировки: один логин на �
 
 Браузер ходит в FastAPI за HTML (Jinja + HTMX) и JSON под `/api`. Домен живёт в сервисах, доступ к БД — в репозиториях. Слой handlers не держит бизнес-правила: **router → service → repository**.
 
-Фоновая работа — ARQ и Redis: истечение неоплаченных счетов и снятие резервов, синхронизация курса Rapira, пересчёт цен. Фото каталога — в MinIO (S3-совместимое хранилище).
+Фоновая работа — ARQ и Redis: истечение неоплаченных счетов и снятие резервов, синхронизация курса Rapira, пересчёт цен. Фото каталога — в S3-совместимом хранилище (LocalStack в compose, клиент MinIO).
 
 ```text
 Браузер (HTML / HTMX)
@@ -61,12 +61,12 @@ B2B-опт спортивной экипировки: один логин на �
 
 ### Данные и очереди
 - **PostgreSQL**, **Redis**, **ARQ**
-- **MinIO** (S3)
+- **S3-совместимое хранилище** (LocalStack в compose, клиент MinIO)
 
 ### Инфраструктура и качество
 - **Docker**, **Docker Compose**, **uv**
 - **pytest**, **Ruff**
-- **GitHub Actions** (pytest + Alembic; release — сборка/push образа в GHCR)
+- **GitHub Actions** в публичном снимке не подключены (workflows отсутствуют)
 
 ## Структура проекта
 
@@ -124,7 +124,7 @@ cp .env.example .env
 
 ```bash
 make install                  # uv sync --extra dev
-make up-deps                  # postgres, redis, minio
+make up-deps                  # postgres, redis, s3 (LocalStack)
 make migrate
 make create-admin             # ADMIN_LOGIN / ADMIN_PASSWORD из .env
 make dev-seed                 # demo-каталог + клиент (админа не создаёт)
@@ -151,7 +151,7 @@ make dev                      # http://127.0.0.1:8000
 
 - В репозитории нет боевых credentials и дампа продакшен-данных.
 - Rapira — публичный endpoint курса; для живых вызовов нужна сеть.
-- Без MinIO seed поднимает каталог без фото.
+- Без S3 (LocalStack) seed поднимает каталог без фото.
 - Telegram/SMTP в коде есть; живых ключей в снимке нет.
 - Release workflow — только CI + push образа в GHCR (`github.repository`); SSH-деплоя из Actions нет.
 - Опциональные `scripts/deploy*.sh` читают локальный `scripts/deploy.env` (из `deploy.env.example`, в git не входит).
@@ -162,3 +162,7 @@ make dev                      # http://127.0.0.1:8000
 
 - [Changelog](docs/CHANGELOG.md)
 - [ADR](docs/ADR.md)
+
+## Лицензия
+
+MIT. См. [LICENSE](LICENSE).
