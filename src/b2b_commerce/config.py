@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     minio_endpoint: str = "127.0.0.1:9000"
     minio_access_key: str = "b2b_commerce"
     minio_secret_key: str = "b2b-commerce-secret"
-    minio_bucket: str = "b2b_commerce"
+    minio_bucket: str = "b2b-commerce"
     minio_secure: bool = False
     admin_login: str = "admin"
     admin_password: str = "changeme"

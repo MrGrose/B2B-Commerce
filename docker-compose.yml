@@ -22,18 +22,21 @@ services:
       - "127.0.0.1:6380:6379"
     restart: unless-stopped
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+  s3:
+    image: localstack/localstack:3
     environment:
-      MINIO_ROOT_USER: b2b_commerce
-      MINIO_ROOT_PASSWORD: b2b-commerce-secret
+      SERVICES: s3
+      DEBUG: "0"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "4566:4566"
     volumes:
-      - miniodata:/data
+      - s3data:/var/lib/localstack
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4566/_localstack/health >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   api:
     build: .
@@ -43,7 +46,7 @@ services:
       APP_ENV: dev
       DATABASE_URL: postgresql+asyncpg://b2b_commerce:b2b_commerce@postgres:5432/b2b_commerce
       REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
+      MINIO_ENDPOINT: s3:4566
       MINIO_SECURE: "false"
     ports:
       - "8000:8000"
@@ -56,8 +59,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -80,7 +83,7 @@ services:
       APP_ENV: dev
       DATABASE_URL: postgresql+asyncpg://b2b_commerce:b2b_commerce@postgres:5432/b2b_commerce
       REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
+      MINIO_ENDPOINT: s3:4566
       MINIO_SECURE: "false"
     depends_on:
       api:
@@ -97,4 +100,4 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  s3data:

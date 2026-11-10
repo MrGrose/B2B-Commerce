@@ -15,9 +15,9 @@ install:
 up:
 	docker compose up -d --build
 
-# Только postgres/redis/minio — для локального make dev / make worker.
+# Только postgres/redis/s3 — для локального make dev / make worker.
 up-deps:
-	docker compose up -d postgres redis minio
+	docker compose up -d postgres redis s3
 
 # Пересоздать контейнеры после правок .env или docker-compose.yml.
 reload:
