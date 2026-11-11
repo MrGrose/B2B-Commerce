@@ -4,6 +4,8 @@ B2B-опт спортивной экипировки: один логин на �
 
 Публичный demo-проект: FastAPI, Jinja2 + HTMX, async SQLAlchemy, PostgreSQL, Redis, ARQ, MinIO. Оригинальный репозиторий разработки — приватный.
 
+![Каталог B2B Commerce](docs/assets/b2b-catalog.webp)
+
 ## Архитектура
 
 Браузер ходит в FastAPI за HTML (Jinja + HTMX) и JSON под `/api`. Домен живёт в сервисах, доступ к БД — в репозиториях. Слой handlers не держит бизнес-правила: **router → service → repository**.
